@@ -246,7 +246,242 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTH SYSTEM — Login + Roles
+// ═══════════════════════════════════════════════════════════════════════════════
+const ROLES = {
+  admin:       { label:"Administrador", color:"#22c55e",  canEdit:true,  canViewFinance:true,  canManage:true  },
+  funcionario: { label:"Funcionário",   color:"#0ea5e9",  canEdit:true,  canViewFinance:false, canManage:false },
+  cliente:     { label:"Cliente",       color:"#a78bfa",  canEdit:false, canViewFinance:false, canManage:false },
+};
+
+// Default admin user — stored in localStorage
+const DEFAULT_ADMIN = { id:"admin001", name:"Marcos Ferreira", email:"marcosferreira.026@icloud.com", role:"admin", password:"aqua@2024" };
+
+function getUsers(){ try{ return JSON.parse(localStorage.getItem("aq_users")||"[]"); }catch(e){return [];} }
+function saveUsers(u){ localStorage.setItem("aq_users",JSON.stringify(u)); }
+function getSession(){ try{ return JSON.parse(localStorage.getItem("aq_session")||"null"); }catch(e){return null;} }
+function saveSession(s){ if(s) localStorage.setItem("aq_session",JSON.stringify(s)); else localStorage.removeItem("aq_session"); }
+
+// Init admin if first run
+(function initAuth(){
+  const users = getUsers();
+  if(!users.find(u=>u.id==="admin001")){
+    saveUsers([DEFAULT_ADMIN]);
+  }
+})();
+
+// ── Login Page ────────────────────────────────────────────────────────────────
+function LoginPage({ onLogin }){
+  const [email, setEmail]   = useState("");
+  const [pass,  setPass]    = useState("");
+  const [error, setError]   = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading]   = useState(false);
+
+  function handleLogin(){
+    setError(""); setLoading(true);
+    setTimeout(()=>{
+      const users = getUsers();
+      const user  = users.find(u=> u.email.toLowerCase()===email.trim().toLowerCase() && u.password===pass);
+      if(user){
+        const session = { id:user.id, name:user.name, email:user.email, role:user.role, loginAt: new Date().toISOString() };
+        saveSession(session);
+        onLogin(session);
+      } else {
+        setError("E-mail ou senha incorretos.");
+      }
+      setLoading(false);
+    }, 600);
+  }
+
+  return (
+    React.createElement("div", { style:{minHeight:"100vh",background:"#060e1a",display:"flex",alignItems:"center",justifyContent:"center",padding:20} },
+      React.createElement("div", { style:{width:"100%",maxWidth:380} },
+        // Logo
+        React.createElement("div", { style:{textAlign:"center",marginBottom:32} },
+          React.createElement("img", { src:"/icon.png", style:{width:100,height:100,borderRadius:20,objectFit:"cover",marginBottom:16} }),
+          React.createElement("div", { style:{fontWeight:800,fontSize:26,color:"#fff",letterSpacing:"-0.5px"} }, "AquaCulture"),
+          React.createElement("div", { style:{fontSize:13,color:"#5a7a9a",marginTop:4} }, "Sistema de Gestão de Piscicultura")
+        ),
+        // Card
+        React.createElement("div", { style:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16,padding:28} },
+          React.createElement("div", { style:{fontSize:16,fontWeight:700,color:"#fff",marginBottom:20} }, "Entrar na sua conta"),
+          // Email
+          React.createElement("div", { style:{marginBottom:14} },
+            React.createElement("label", { style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6} }, "E-mail"),
+            React.createElement("input", {
+              type:"email", placeholder:"seu@email.com",
+              value:email, onChange:e=>setEmail(e.target.value),
+              onKeyDown:e=>e.key==="Enter"&&handleLogin(),
+              style:{width:"100%",padding:"12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}
+            })
+          ),
+          // Password
+          React.createElement("div", { style:{marginBottom:20,position:"relative"} },
+            React.createElement("label", { style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6} }, "Senha"),
+            React.createElement("input", {
+              type:showPass?"text":"password", placeholder:"••••••••",
+              value:pass, onChange:e=>setPass(e.target.value),
+              onKeyDown:e=>e.key==="Enter"&&handleLogin(),
+              style:{width:"100%",padding:"12px 40px 12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}
+            }),
+            React.createElement("button", {
+              onClick:()=>setShowPass(p=>!p),
+              style:{position:"absolute",right:12,top:34,background:"none",border:"none",cursor:"pointer",color:"#5a7a9a",fontSize:16}
+            }, showPass?"🙈":"👁️")
+          ),
+          // Error
+          error && React.createElement("div", { style:{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:8,padding:"10px 13px",fontSize:13,color:"#f87171",marginBottom:16} }, error),
+          // Button
+          React.createElement("button", {
+            onClick:handleLogin,
+            disabled:loading||!email||!pass,
+            style:{width:"100%",padding:13,background:loading||!email||!pass?"rgba(14,165,233,0.4)":"linear-gradient(135deg,#0ea5e9,#0284c7)",border:"none",borderRadius:10,color:"#fff",fontSize:15,fontWeight:700,cursor:loading||!email||!pass?"not-allowed":"pointer",fontFamily:"inherit"}
+          }, loading?"Entrando...":"Entrar")
+        ),
+        React.createElement("div", { style:{textAlign:"center",marginTop:20,fontSize:12,color:"#5a7a9a"} },
+          "Não tem acesso? Entre em contato com o administrador."
+        )
+      )
+    )
+  );
+}
+
+// ── User Management Modal ─────────────────────────────────────────────────────
+function UserManagementModal({ onClose, currentUser }){
+  const [users, setUsersState] = useState(getUsers);
+  const [tab, setTab] = useState("list");
+  const [form, setForm] = useState({ name:"", email:"", role:"funcionario", password:"" });
+  const [editId, setEditId] = useState(null);
+  const [msg, setMsg] = useState("");
+
+  function refresh(){ setUsersState(getUsers()); }
+
+  function saveUser(){
+    if(!form.name||!form.email||(!editId&&!form.password)) return setMsg("Preencha todos os campos.");
+    const all = getUsers();
+    if(editId){
+      const updated = all.map(u=> u.id===editId ? {...u, name:form.name, email:form.email, role:form.role, ...(form.password?{password:form.password}:{})} : u);
+      saveUsers(updated);
+    } else {
+      if(all.find(u=>u.email.toLowerCase()===form.email.toLowerCase())) return setMsg("E-mail já cadastrado.");
+      saveUsers([...all, { id:"u"+Date.now(), ...form }]);
+    }
+    setMsg(editId?"✅ Usuário atualizado!":"✅ Usuário criado!");
+    setForm({name:"",email:"",role:"funcionario",password:""});
+    setEditId(null);
+    refresh();
+    setTimeout(()=>setMsg(""),2500);
+  }
+
+  function deleteUser(id){
+    if(id==="admin001") return setMsg("Não é possível remover o administrador.");
+    if(!confirm("Remover este usuário?")) return;
+    saveUsers(getUsers().filter(u=>u.id!==id));
+    refresh();
+  }
+
+  function startEdit(u){
+    setForm({name:u.name, email:u.email, role:u.role, password:""});
+    setEditId(u.id);
+    setTab("form");
+  }
+
+  return (
+    React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(12px)",zIndex:300,display:"flex",flexDirection:"column"} },
+      // Header
+      React.createElement("div", { style:{padding:"14px 18px",borderBottom:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:12,background:"#060e1a"} },
+        React.createElement("span", { style:{fontSize:22} }, "👥"),
+        React.createElement("div", { style:{flex:1} },
+          React.createElement("div", { style:{fontWeight:800,fontSize:17,color:"#fff"} }, "Gerenciar Usuários"),
+          React.createElement("div", { style:{fontSize:11,color:"#5a7a9a"} }, "Administradores · Funcionários · Clientes")
+        ),
+        React.createElement("button", { onClick:onClose, style:{background:"none",border:"none",color:"#5a7a9a",cursor:"pointer",fontSize:22} }, "✕")
+      ),
+      // Tabs
+      React.createElement("div", { style:{display:"flex",gap:4,padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"#060e1a"} },
+        ["list","form"].map(t=>
+          React.createElement("button", { key:t, onClick:()=>{setTab(t);setEditId(null);setForm({name:"",email:"",role:"funcionario",password:""});},
+            style:{padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13,
+              background:tab===t?"#0ea5e9":"rgba(255,255,255,0.05)",color:tab===t?"#fff":"#5a7a9a"} },
+            t==="list"?"👥 Usuários":"➕ "+(editId?"Editar":"Novo")
+          )
+        )
+      ),
+      // Content
+      React.createElement("div", { style:{flex:1,overflowY:"auto",padding:16} },
+        msg && React.createElement("div", { style:{background:msg.startsWith("✅")?"rgba(34,197,94,0.1)":"rgba(239,68,68,0.1)",border:`1px solid ${msg.startsWith("✅")?"rgba(34,197,94,0.3)":"rgba(239,68,68,0.3)"}`,borderRadius:9,padding:"10px 14px",fontSize:13,color:msg.startsWith("✅")?"#4ade80":"#f87171",marginBottom:14} }, msg),
+
+        tab==="list" && React.createElement("div", { style:{display:"flex",flexDirection:"column",gap:10} },
+          users.map(u=>{
+            const role = ROLES[u.role]||ROLES.funcionario;
+            return React.createElement("div", { key:u.id, style:{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12} },
+              React.createElement("div", { style:{width:40,height:40,borderRadius:"50%",background:`${role.color}22`,border:`2px solid ${role.color}44`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0} },
+                u.role==="admin"?"👑":u.role==="funcionario"?"👷":"🏢"
+              ),
+              React.createElement("div", { style:{flex:1} },
+                React.createElement("div", { style:{fontWeight:700,fontSize:14,color:"#fff"} }, u.name),
+                React.createElement("div", { style:{fontSize:12,color:"#5a7a9a",marginTop:2} }, u.email),
+                React.createElement("span", { style:{fontSize:10,fontWeight:700,color:role.color,background:`${role.color}15`,padding:"2px 8px",borderRadius:10,marginTop:4,display:"inline-block"} }, role.label)
+              ),
+              u.id!=="admin001" && React.createElement("div", { style:{display:"flex",gap:8} },
+                React.createElement("button", { onClick:()=>startEdit(u), style:{background:"rgba(14,165,233,0.1)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:7,padding:"6px 12px",cursor:"pointer",color:"#0ea5e9",fontSize:12,fontFamily:"inherit"} }, "✏️ Editar"),
+                React.createElement("button", { onClick:()=>deleteUser(u.id), style:{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:7,padding:"6px 12px",cursor:"pointer",color:"#f87171",fontSize:12,fontFamily:"inherit"} }, "✕")
+              )
+            );
+          }),
+          users.length===0 && React.createElement("div", { style:{textAlign:"center",color:"#5a7a9a",padding:30} }, "Nenhum usuário cadastrado.")
+        ),
+
+        tab==="form" && React.createElement("div", { style:{display:"flex",flexDirection:"column",gap:14,maxWidth:480} },
+          React.createElement("div", { style:{fontSize:14,fontWeight:700,color:"#fff",marginBottom:4} }, editId?"Editar Usuário":"Novo Usuário"),
+          [
+            {label:"Nome completo", key:"name", type:"text",    placeholder:"ex: João Silva"},
+            {label:"E-mail",        key:"email", type:"email",   placeholder:"joao@email.com"},
+            {label:"Senha",         key:"password", type:"password", placeholder:editId?"Deixe vazio para manter":"Mínimo 6 caracteres"},
+          ].map(f=>
+            React.createElement("div", { key:f.key },
+              React.createElement("label", { style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6} }, f.label),
+              React.createElement("input", { type:f.type, placeholder:f.placeholder, value:form[f.key],
+                onChange:e=>setForm(p=>({...p,[f.key]:e.target.value})),
+                style:{width:"100%",padding:"11px 13px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:9,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box"} })
+            )
+          ),
+          React.createElement("div", null,
+            React.createElement("label", { style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6} }, "Perfil de Acesso"),
+            React.createElement("select", { value:form.role, onChange:e=>setForm(p=>({...p,role:e.target.value})),
+              style:{width:"100%",padding:"11px 13px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:9,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none"} },
+              React.createElement("option", {value:"admin"},       "👑 Administrador — acesso total"),
+              React.createElement("option", {value:"funcionario"}, "👷 Funcionário — registrar dados, sem financeiro"),
+              React.createElement("option", {value:"cliente"},     "🏢 Cliente — somente visualizar")
+            )
+          ),
+          // Role description
+          React.createElement("div", { style:{background:"rgba(255,255,255,0.03)",borderRadius:9,padding:"10px 13px",fontSize:12,color:"#5a7a9a"} },
+            form.role==="admin"       ? "✅ Acesso total: tanques, financeiro, relatórios e gestão de usuários." :
+            form.role==="funcionario" ? "📋 Pode registrar O₂, ração, biometria e despesas. Não vê CAPEX/OPEX nem relatórios financeiros." :
+                                        "👁️ Somente visualização: vê dashboard e tanques mas não pode editar nada."
+          ),
+          React.createElement("button", { onClick:saveUser,
+            style:{padding:13,background:"linear-gradient(135deg,#0ea5e9,#0284c7)",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"} },
+            editId ? "✅ Salvar Alterações" : "✅ Criar Usuário"
+          )
+        )
+      )
+    )
+  );
+}
+
+
 function App() {
+    const [session,  setSession]      = (0, useState)(()=>getSession());
+    const [showUserMgmt, setShowUserMgmt] = (0, useState)(false);
+
+    if(!session) return React.createElement(LoginPage, { onLogin: s=>setSession(s) });
+
+    const role = ROLES[session.role]||ROLES.funcionario;
+
     const [tanks, setTanks] = (0, useState)(() => load("aq_tanks", []));
     const [logs, setLogs] = (0, useState)(() => load("aq_logs", {}));
     const [expenses, setExpenses] = (0, useState)(() => load("aq_exp", {}));
@@ -396,7 +631,7 @@ function App() {
     };
     return (React.createElement(Ctx.Provider, { value: ctx },
         React.createElement("style", null, CSS),
-        React.createElement(Nav, { page: page, goHome: goHome, onNewTank: () => setShowNewTank(true), onSettings: () => setShowSettings(true), onFinanceiro: () => setShowFinanceiro(true), onRelatorios: () => setShowRelatorios(true), alerts: alerts, onStockIn: () => setShowStockIn(true), stock: stock }),
+        React.createElement(Nav, { page: page, goHome: goHome, session: session, onNewTank: () => setShowNewTank(true), onSettings: () => setShowSettings(true), onFinanceiro: () => setShowFinanceiro(true), onRelatorios: () => setShowRelatorios(true), alerts: alerts, onStockIn: () => setShowStockIn(true), stock: stock }),
         React.createElement("div", { style: { maxWidth: 1280, margin: "0 auto", padding: "14px 14px" } },
             page === "dashboard" && React.createElement(Dashboard, { onEdit: t => { setTankId(t.id); setShowEditTank(true); } }),
             page === "tank" && activeTank && (React.createElement(TankPage, { onEdit: () => setShowEditTank(true) }))),
@@ -404,13 +639,14 @@ function App() {
         showEditTank && activeTank && React.createElement(TankModal, { mode: "edit", tank: activeTank, onClose: () => setShowEditTank(false) }),
         showSettings && React.createElement(SettingsModal, { onClose: () => setShowSettings(false) }),
         showStockIn && React.createElement(StockInModal, { onClose: () => setShowStockIn(false) }),
-        showFinanceiro && React.createElement(FinanceiroModal, { onClose: () => setShowFinanceiro(false) }),
+        showUserMgmt && React.createElement(UserManagementModal, { onClose:()=>setShowUserMgmt(false), currentUser:session }),
+      showFinanceiro && React.createElement(FinanceiroModal, { onClose: () => setShowFinanceiro(false) }),
         showRelatorios && React.createElement(RelatoriosModal, { onClose: () => setShowRelatorios(false) })));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // NAV — mobile-first com menu hambúrguer
 // ═══════════════════════════════════════════════════════════════════════════════
-function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, alerts, onStockIn, stock }) {
+function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, alerts, onStockIn, stock, session }) {
     const [open, setOpen] = (0, useState)(false);
     const dangerCount = alerts.filter(a => a.level === "danger").length;
     const warnCount = alerts.filter(a => a.level === "warn").length;
@@ -445,7 +681,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                         React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Dashboard principal")))),
                 React.createElement("div", { className: "mob-divider" }),
                 React.createElement("div", { className: "mob-section" }, "A\u00E7\u00F5es"),
-                React.createElement("div", { className: "mob-item", onClick: close(onNewTank) },
+                (role.canManage||role.canEdit) && React.createElement("div", { className: "mob-item", onClick: close(onNewTank) },
                     React.createElement("span", { style: { fontSize: 22 } }, "\u2795"),
                     React.createElement("div", null,
                         React.createElement("div", null, "Novo Tanque"),
@@ -476,6 +712,26 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                     React.createElement("div", null,
                         React.createElement("div", null, "Configura\u00E7\u00F5es"),
                         React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Unidades, notifica\u00E7\u00F5es"))),
+            React.createElement("div", { className: "mob-divider" }),
+            React.createElement("div", { className: "mob-section" }, "Conta"),
+            React.createElement("div", { className: "mob-item" },
+                React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDC64"),
+                React.createElement("div", null,
+                    React.createElement("div", null, session?.name || "Usu\u00E1rio"),
+                    React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } },
+                        (ROLES[session?.role] || ROLES.funcionario).label))),
+            session?.role === "admin" && React.createElement("div", { className: "mob-item", onClick: close(() => setShowUserMgmt(true)) },
+                React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDC65"),
+                React.createElement("div", null,
+                    React.createElement("div", null, "Gerenciar Usu\u00E1rios"),
+                    React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Criar e editar acessos"))),
+            React.createElement("div", { className: "mob-item",
+                style: { borderColor: "rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)" },
+                onClick: close(() => { saveSession(null); setSession(null); }) },
+                React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDEAA"),
+                React.createElement("div", null,
+                    React.createElement("div", { style: { color: "#f87171" } }, "Sair"),
+                    React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Encerrar sess\u00E3o"))),
                 (dangerCount + warnCount) > 0 && (React.createElement("div", { className: "mob-item", style: { borderColor: "rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)" } },
                     React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDD14"),
                     React.createElement("div", null,
