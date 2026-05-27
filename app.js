@@ -435,17 +435,7 @@ function LoginPage({ onLogin }){
           }, loading?"Entrando...":"Entrar")
         ),
         React.createElement("div", { style:{textAlign:"center",marginTop:20,fontSize:12,color:"#5a7a9a"} },
-          "Não tem acesso? Entre em contato com o administrador."),
-        showForgot && React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(10px)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:20} },
-          React.createElement("div", { style:{background:"#0d1829",border:"1px solid rgba(255,255,255,0.1)",borderRadius:16,padding:28,width:"100%",maxWidth:360} },
-            React.createElement("div", { style:{fontWeight:700,fontSize:16,color:"#fff",marginBottom:8} }, "Recuperar Senha"),
-            React.createElement("div", { style:{fontSize:13,color:"#5a7a9a",marginBottom:18,lineHeight:1.6} },
-              "Entre em contato com o administrador para redefinir sua senha: ",
-              React.createElement("a", { href:"mailto:marcosferreira.026@icloud.com",
-                style:{color:"#0ea5e9",display:"block",marginTop:6} }, "marcosferreira.026@icloud.com")),
-            React.createElement("button", { onClick:()=>setShowForgot(false),
-              style:{width:"100%",padding:11,background:"rgba(14,165,233,0.15)",border:"1px solid rgba(14,165,233,0.3)",borderRadius:9,color:"#0ea5e9",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"} }, "Fechar")))
-        )
+          "Não tem acesso? Entre em contato com o administrador.")
       )
     )
   );
