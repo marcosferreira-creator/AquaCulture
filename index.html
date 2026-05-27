@@ -6,26 +6,17 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="AquaCulture"/>
-  <link rel="apple-touch-icon" href="icon.png"><rect width='180' height='180' rx='40' fill='%23060e1a'/><text x='90' y='130' font-size='110' text-anchor='middle'>🐟</text></svg>"/>
+  <link rel="apple-touch-icon" href="/icon.png">
   <title>AquaCulture</title>
   <style>
     *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
     body{margin:0;background:#060e1a;-webkit-text-size-adjust:100%;overscroll-behavior:none;}
-    #root{min-height:100vh;}@keyframes spinLogo{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}@keyframes floatLogo{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    #root{min-height:100vh;}
+    @keyframes spinLogo{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    @keyframes floatLogo{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
   </style>
 </head>
 <body>
   <div id="root">
     <div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#5a7a9a;font-family:sans-serif;font-size:14px;flex-direction:column;gap:12px;">
-      <img src="/icon.png" 
-           style="width:100px;height:100px;object-fit:cover;border-radius:20px;
-                  animation:spinLogo 3s linear infinite;" />
-      <div style="margin-top:8px">Carregando AquaCulture...</div>
-    </div>
-  </div>
-  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js" crossorigin></script>
-  <script src="/app.js"></script>
-</body>
-</html>
+      <img src="/icon.png
