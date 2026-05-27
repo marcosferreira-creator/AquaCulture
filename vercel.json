@@ -1,15 +1,7 @@
 {
   "version": 2,
-  "build": {
-    "env": {
-      "NODE_VERSION": "20"
-    }
-  },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
-  ],
-  "functions": {
-    "api/ler-nf.js": { "maxDuration": 30 }
-  }
+  ]
 }
