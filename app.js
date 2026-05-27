@@ -249,11 +249,88 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 // ═══════════════════════════════════════════════════════════════════════════════
 // AUTH SYSTEM — Login + Roles
 // ═══════════════════════════════════════════════════════════════════════════════
+// ── ROLES & PERMISSIONS ──────────────────────────────────────────────────────
+// admin        = dono / acesso total
+// manejo       = caseiro/técnico: registra O₂, ração, biometria, qualidade água
+// financeiro   = lança despesas por tanque, não vê totais/CAPEX/OPEX geral
+// cliente      = outra fazenda com conta própria — acesso total à SUA fazenda
 const ROLES = {
-  admin:       { label:"Administrador", color:"#22c55e",  canEdit:true,  canViewFinance:true,  canManage:true  },
-  funcionario: { label:"Funcionário",   color:"#0ea5e9",  canEdit:true,  canViewFinance:false, canManage:false },
-  cliente:     { label:"Cliente",       color:"#a78bfa",  canEdit:false, canViewFinance:false, canManage:false },
+  admin: {
+    label:"Administrador", color:"#22c55e", icon:"👑",
+    canManageUsers:true,
+    canViewDashboard:true,
+    canEditTanks:true,        // criar/editar/deletar tanques
+    canRegisterDaily:true,    // registrar O₂, ração, mortalidade
+    canRegisterBio:true,      // biometria
+    canRegisterExpense:true,  // despesas por tanque
+    canViewExpenses:true,     // ver totais de despesas
+    canViewFinance:true,      // CAPEX, OPEX geral, resumo
+    canViewReports:true,      // relatórios completos
+    canManageStock:true,      // entrada de ração no estoque
+  },
+  manejo: {
+    label:"Manejo", color:"#0ea5e9", icon:"👷",
+    canManageUsers:false,
+    canViewDashboard:true,
+    canEditTanks:false,
+    canRegisterDaily:true,    // ✅ O₂, ração, qualidade água
+    canRegisterBio:true,      // ✅ biometria
+    canRegisterExpense:false,
+    canViewExpenses:false,
+    canViewFinance:false,     // ❌ sem acesso financeiro
+    canViewReports:false,
+    canManageStock:false,     // ❌ não gerencia estoque
+  },
+  financeiro: {
+    label:"Financeiro", color:"#f59e0b", icon:"💼",
+    canManageUsers:false,
+    canViewDashboard:true,
+    canEditTanks:false,
+    canRegisterDaily:false,   // ❌ não registra manejo
+    canRegisterBio:false,
+    canRegisterExpense:true,  // ✅ lança despesas por tanque
+    canViewExpenses:false,    // ❌ não vê totais
+    canViewFinance:false,     // ❌ não vê CAPEX/OPEX geral
+    canViewReports:false,
+    canManageStock:true,      // ✅ entrada de ração (compra)
+  },
+  cliente: {
+    label:"Cliente (Fazenda)", color:"#a78bfa", icon:"🏢",
+    // Cliente = outra fazenda com conta própria — acesso total à SUA fazenda
+    canManageUsers:false,
+    canViewDashboard:true,
+    canEditTanks:true,
+    canRegisterDaily:true,
+    canRegisterBio:true,
+    canRegisterExpense:true,
+    canViewExpenses:true,
+    canViewFinance:true,
+    canViewReports:true,
+    canManageStock:true,
+  },
 };
+
+// ── AUDIT LOG ─────────────────────────────────────────────────────────────────
+// Stamps every action with who did it and when
+function auditStamp(session){
+  if(!session) return {};
+  return {
+    _by:   session.name,
+    _role: session.role,
+    _at:   new Date().toLocaleString("pt-BR", {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}),
+  };
+}
+function AuditBadge({ stamp, style }){
+  if(!stamp || !stamp._by) return null;
+  return React.createElement("div", {
+    style:{ fontSize:10, color:"#5a7a9a", display:"flex", alignItems:"center", gap:4, ...style }
+  },
+    React.createElement("span", null, "\uD83D\uDC64"),
+    React.createElement("span", null, stamp._by),
+    React.createElement("span", { style:{color:"rgba(255,255,255,0.15)"} }, "·"),
+    React.createElement("span", null, stamp._at)
+  );
+}
 
 // Default admin user — stored in localStorage
 const DEFAULT_ADMIN = { id:"admin001", name:"Marcos Ferreira", email:"marcosferreira.026@icloud.com", role:"admin", password:"aqua@2024" };
@@ -273,11 +350,13 @@ function saveSession(s){ if(s) localStorage.setItem("aq_session",JSON.stringify(
 
 // ── Login Page ────────────────────────────────────────────────────────────────
 function LoginPage({ onLogin }){
-  const [email, setEmail]   = useState("");
-  const [pass,  setPass]    = useState("");
+  const [email, setEmail]   = useState(()=>localStorage.getItem("aq_remember_email")||"");
+  const [pass,  setPass]    = useState(()=>localStorage.getItem("aq_remember_pass")||"");
+  const [remember, setRemember] = useState(()=>!!localStorage.getItem("aq_remember_email"));
   const [error, setError]   = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading]   = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
 
   function handleLogin(){
     setError(""); setLoading(true);
@@ -287,6 +366,13 @@ function LoginPage({ onLogin }){
       if(user){
         const session = { id:user.id, name:user.name, email:user.email, role:user.role, loginAt: new Date().toISOString() };
         saveSession(session);
+        if(remember){
+          localStorage.setItem("aq_remember_email", email.trim());
+          localStorage.setItem("aq_remember_pass", pass);
+        } else {
+          localStorage.removeItem("aq_remember_email");
+          localStorage.removeItem("aq_remember_pass");
+        }
         onLogin(session);
       } else {
         setError("E-mail ou senha incorretos.");
@@ -334,6 +420,14 @@ function LoginPage({ onLogin }){
           // Error
           error && React.createElement("div", { style:{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:8,padding:"10px 13px",fontSize:13,color:"#f87171",marginBottom:16} }, error),
           // Button
+          React.createElement("div", { style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16} },
+            React.createElement("label", { style:{display:"flex",alignItems:"center",gap:7,cursor:"pointer",fontSize:13,color:"#5a7a9a"} },
+              React.createElement("input", { type:"checkbox", checked:remember, onChange:e=>setRemember(e.target.checked),
+                style:{width:16,height:16,accentColor:"#0ea5e9",cursor:"pointer"} }),
+              " Lembrar minha senha"),
+            React.createElement("button", { onClick:()=>setShowForgot(true),
+              style:{background:"none",border:"none",cursor:"pointer",color:"#0ea5e9",fontSize:13,fontFamily:"inherit"} },
+              "Esqueci minha senha")),
           React.createElement("button", {
             onClick:handleLogin,
             disabled:loading||!email||!pass,
@@ -341,7 +435,16 @@ function LoginPage({ onLogin }){
           }, loading?"Entrando...":"Entrar")
         ),
         React.createElement("div", { style:{textAlign:"center",marginTop:20,fontSize:12,color:"#5a7a9a"} },
-          "Não tem acesso? Entre em contato com o administrador."
+          "Não tem acesso? Entre em contato com o administrador."),
+        showForgot && React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(10px)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:20} },
+          React.createElement("div", { style:{background:"#0d1829",border:"1px solid rgba(255,255,255,0.1)",borderRadius:16,padding:28,width:"100%",maxWidth:360} },
+            React.createElement("div", { style:{fontWeight:700,fontSize:16,color:"#fff",marginBottom:8} }, "Recuperar Senha"),
+            React.createElement("div", { style:{fontSize:13,color:"#5a7a9a",marginBottom:18,lineHeight:1.6} },
+              "Entre em contato com o administrador para redefinir sua senha: ",
+              React.createElement("a", { href:"mailto:marcosferreira.026@icloud.com",
+                style:{color:"#0ea5e9",display:"block",marginTop:6} }, "marcosferreira.026@icloud.com")),
+            React.createElement("button", { onClick:()=>setShowForgot(false),
+              style:{width:"100%",padding:11,background:"rgba(14,165,233,0.15)",border:"1px solid rgba(14,165,233,0.3)",borderRadius:9,color:"#0ea5e9",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"} }, "Fechar")))
         )
       )
     )
@@ -418,7 +521,7 @@ function UserManagementModal({ onClose, currentUser }){
             const role = ROLES[u.role]||ROLES.funcionario;
             return React.createElement("div", { key:u.id, style:{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12} },
               React.createElement("div", { style:{width:40,height:40,borderRadius:"50%",background:`${role.color}22`,border:`2px solid ${role.color}44`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0} },
-                u.role==="admin"?"👑":u.role==="funcionario"?"👷":"🏢"
+                u.role==="admin"?"👑":u.role==="manejo"?"👷":u.role==="financeiro"?"💼":"🏢"
               ),
               React.createElement("div", { style:{flex:1} },
                 React.createElement("div", { style:{fontWeight:700,fontSize:14,color:"#fff"} }, u.name),
@@ -452,16 +555,18 @@ function UserManagementModal({ onClose, currentUser }){
             React.createElement("label", { style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6} }, "Perfil de Acesso"),
             React.createElement("select", { value:form.role, onChange:e=>setForm(p=>({...p,role:e.target.value})),
               style:{width:"100%",padding:"11px 13px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:9,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none"} },
-              React.createElement("option", {value:"admin"},       "👑 Administrador — acesso total"),
-              React.createElement("option", {value:"funcionario"}, "👷 Funcionário — registrar dados, sem financeiro"),
-              React.createElement("option", {value:"cliente"},     "🏢 Cliente — somente visualizar")
+              React.createElement("option", {value:"admin"},      "👑 Administrador — acesso total"),
+              React.createElement("option", {value:"manejo"},     "👷 Manejo — O₂, ração, biometria, qualidade água"),
+              React.createElement("option", {value:"financeiro"}, "💼 Financeiro — lança despesas, sem ver totais"),
+              React.createElement("option", {value:"cliente"},    "🏢 Cliente (Fazenda) — acesso total à própria fazenda")
             )
           ),
           // Role description
           React.createElement("div", { style:{background:"rgba(255,255,255,0.03)",borderRadius:9,padding:"10px 13px",fontSize:12,color:"#5a7a9a"} },
-            form.role==="admin"       ? "✅ Acesso total: tanques, financeiro, relatórios e gestão de usuários." :
-            form.role==="funcionario" ? "📋 Pode registrar O₂, ração, biometria e despesas. Não vê CAPEX/OPEX nem relatórios financeiros." :
-                                        "👁️ Somente visualização: vê dashboard e tanques mas não pode editar nada."
+            form.role==="admin"      ? "👑 Acesso total: tanques, financeiro, relatórios e gestão de usuários." :
+            form.role==="manejo"     ? "👷 Registra O₂, ração, biometria e qualidade da água. Sem acesso ao financeiro ou estoque." :
+            form.role==="financeiro" ? "💼 Lança despesas por tanque e entrada de ração. Não vê totais, CAPEX ou OPEX geral." :
+                                       "🏢 Outra fazenda com conta própria — acesso total à fazenda dela, separado dos seus dados."
           ),
           React.createElement("button", { onClick:saveUser,
             style:{padding:13,background:"linear-gradient(135deg,#0ea5e9,#0284c7)",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit"} },
@@ -477,11 +582,7 @@ function UserManagementModal({ onClose, currentUser }){
 function App() {
     const [session,  setSession]      = (0, useState)(()=>getSession());
     const [showUserMgmt, setShowUserMgmt] = (0, useState)(false);
-
-    if(!session) return React.createElement(LoginPage, { onLogin: s=>setSession(s) });
-
-    const role = ROLES[session.role]||ROLES.funcionario;
-
+    // NOTE: ALL hooks must be called before any conditional return (React rules)
     const [tanks, setTanks] = (0, useState)(() => load("aq_tanks", []));
     const [logs, setLogs] = (0, useState)(() => load("aq_logs", {}));
     const [expenses, setExpenses] = (0, useState)(() => load("aq_exp", {}));
@@ -651,6 +752,10 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
     const dangerCount = alerts.filter(a => a.level === "danger").length;
     const warnCount = alerts.filter(a => a.level === "warn").length;
     function close(fn) { return () => { setOpen(false); fn && fn(); }; }
+    // Session guard — after all hooks
+    if(!session) return React.createElement(LoginPage, { onLogin: s=>setSession(s) });
+    const role = ROLES[session.role]||ROLES.funcionario;
+
     return (React.createElement(React.Fragment, null,
         React.createElement("nav", { style: { height: 52, padding: "0 14px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
             React.createElement("button", { className: "hamburger", onClick: () => setOpen(o => !o), "aria-label": "Menu" },
@@ -686,7 +791,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                     React.createElement("div", null,
                         React.createElement("div", null, "Novo Tanque"),
                         React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Cadastrar tanque de cria\u00E7\u00E3o"))),
-                React.createElement("div", { className: "mob-item", onClick: close(onStockIn) },
+                role.canManageStock && React.createElement("div", { className: "mob-item", onClick: close(onStockIn) },
                     React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCE5"),
                     React.createElement("div", null,
                         React.createElement("div", null, "Entrada de Ra\u00E7\u00E3o"),
@@ -697,12 +802,12 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                             fmtBRL(stock.bags * stock.costPerBag)))),
                 React.createElement("div", { className: "mob-divider" }),
                 React.createElement("div", { className: "mob-section" }, "Sistema"),
-                React.createElement("div", { className: "mob-item", onClick: close(onFinanceiro) },
+                (role.canViewFinance||role.canRegisterExpense) && React.createElement("div", { className: "mob-item", onClick: close(onFinanceiro) },
                     React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCB0"),
                     React.createElement("div", null,
                         React.createElement("div", null, "Financeiro"),
                         React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "CAPEX \u00B7 OPEX \u00B7 Cronograma"))),
-                React.createElement("div", { className: "mob-item", onClick: close(onRelatorios) },
+                role.canViewReports && React.createElement("div", { className: "mob-item", onClick: close(onRelatorios) },
                     React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCCB"),
                     React.createElement("div", null,
                         React.createElement("div", null, "Relat\u00F3rios"),
@@ -717,10 +822,10 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
             React.createElement("div", { className: "mob-item" },
                 React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDC64"),
                 React.createElement("div", null,
-                    React.createElement("div", null, session?.name || "Usu\u00E1rio"),
+                    React.createElement("div", null, (session&&session.name)||'Usuário' || "Usu\u00E1rio"),
                     React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } },
-                        (ROLES[session?.role] || ROLES.funcionario).label))),
-            session?.role === "admin" && React.createElement("div", { className: "mob-item", onClick: close(() => setShowUserMgmt(true)) },
+                        (ROLES[(session&&session.role)||'funcionario'] || ROLES.funcionario).label))),
+            (session&&session.role)||'funcionario' === "admin" && React.createElement("div", { className: "mob-item", onClick: close(() => setShowUserMgmt(true)) },
                 React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDC65"),
                 React.createElement("div", null,
                     React.createElement("div", null, "Gerenciar Usu\u00E1rios"),
@@ -1263,7 +1368,7 @@ function TankPage({ onEdit }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // DAILY TAB — 3 leituras diárias de qualidade de água
 // ═══════════════════════════════════════════════════════════════════════════════
-function DailyTab({ tank, phase, dailyFeedKg, sp }) {
+function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
     var _a;
     const { updateDayLog, logs, activeDate, setActiveDate, consumeStock, stock, waterTimes, goHome } = useApp();
     const dl = ((_a = logs[tank.id]) === null || _a === void 0 ? void 0 : _a[activeDate]) || {};
@@ -1638,7 +1743,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // BIOMETRIA TAB
 // ═══════════════════════════════════════════════════════════════════════════════
-function BioTab({ tank }) {
+function BioTab({ tank, session, role }) {
     const { updateTank } = useApp();
     const [samples, setSamples] = (0, useState)("");
     const [avgW, setAvgW] = (0, useState)(tank.avgWeightG || "");
