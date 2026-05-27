@@ -1,0 +1,6 @@
+{
+  "name": "aquagestao",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão de Piscicultura",
+  "engines": { "node": "18.x" }
+}
