@@ -19,4 +19,37 @@
 <body>
   <div id="root">
     <div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#5a7a9a;font-family:sans-serif;font-size:14px;flex-direction:column;gap:12px;">
-      <img src="/icon.png
+      <img src="/icon.png" style="width:100px;height:100px;object-fit:cover;border-radius:20px;animation:spinLogo 3s linear infinite;"/>
+      <div style="margin-top:8px">Carregando AquaCulture...</div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <script async src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js" crossorigin></script>
+  <script>
+    var appLoaded = false;
+    function startApp() {
+      if (appLoaded) return;
+      appLoaded = true;
+      if (!window.Recharts) {
+        window.Recharts = {
+          LineChart:function(p){return p.children?React.createElement('div',null,p.children):null},
+          Line:function(){return null},BarChart:function(p){return p.children?React.createElement('div',null,p.children):null},
+          Bar:function(){return null},XAxis:function(){return null},YAxis:function(){return null},
+          CartesianGrid:function(){return null},Tooltip:function(){return null},
+          ResponsiveContainer:function(p){return p.children||null},
+          Legend:function(){return null},PieChart:function(p){return p.children?React.createElement('div',null,p.children):null},
+          Pie:function(){return null},Cell:function(){return null}
+        };
+      }
+      var s = document.createElement('script');
+      s.src = '/app.js';
+      document.body.appendChild(s);
+    }
+    setTimeout(startApp, 4000);
+    document.querySelector('script[src*="Recharts"]').addEventListener('load', startApp);
+    document.querySelector('script[src*="Recharts"]').addEventListener('error', startApp);
+  </script>
+</body>
+</html>
