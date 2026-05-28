@@ -22,8 +22,8 @@ function sacosLabel(kg) { return `${sacos(kg)} sacos (${kg.toFixed(1)} kg)`; }
 // ═══════════════════════════════════════════════════════════════════════════════
 // SPECIES DATABASE — internal always in grams & m²
 // ═══════════════════════════════════════════════════════════════════════════════
-const FCR_META = { matrinxa: 2.5, tambaqui: 1.7, tilapia: 1.5 };
-const FCR_ALERT = { matrinxa: 3.0, tambaqui: 2.2, tilapia: 2.0 };
+const FCR_META = { matrinxa: 2.5, tambaqui: 1.7 };
+const FCR_ALERT = { matrinxa: 3.0, tambaqui: 2.2 };
 // ─── CAPACIDADE DE CARGA ────────────────────────────────────────────────────
 // Dois limites simultâneos:
 //   1. densityPerM2  → limite pela SUPERFÍCIE (troca gasosa / aeração)
@@ -74,7 +74,7 @@ function depthStatus(depthM) {
 }
 const SP = {
     matrinxa: {
-        name: "Matrinxã", color: "#22c55e", icon: "🐟",
+        name: "Matrinxã", color: "#22c55e", icon: "🐟", imgSrc: "/icon.png",
         densityPerM2: 2.5,
         kgPerM3: 15, // kg de biomassa por m³ (semi-intensivo c/ aeração)
         minDepthM: 1.2, // profundidade mínima recomendada
@@ -95,7 +95,7 @@ const SP = {
         ],
     },
     tambaqui: {
-        name: "Tambaqui", color: "#f59e0b", icon: "🐠",
+        name: "Tambaqui", color: "#f59e0b", icon: "🐠", imgSrc: "/icon.png",
         densityPerM2: 3,
         kgPerM3: 18, minDepthM: 1.2, idealDepthM: 1.5, maxDepthM: 2.0,
         minO2: 4, idealO2: 6, maxTemp: 32, minTemp: 24, idealTemp: 28, phMin: 6.0, phMax: 8.0,
@@ -112,7 +112,7 @@ const SP = {
             { range: "700–2000g", pct: "2,5%", freq: "2x/dia", fcr: "1,7", protein: "24%", obs: "Extrusada G" },
         ],
     },
-    tilapia: {
+    ilapia: {
         name: "Tilápia", color: "#6366f1", icon: "🐡",
         densityPerM2: 4,
         kgPerM3: 25, minDepthM: 1.0, idealDepthM: 1.5, maxDepthM: 2.5,
@@ -722,7 +722,7 @@ function App() {
     };
     return (React.createElement(Ctx.Provider, { value: ctx },
         React.createElement("style", null, CSS),
-        React.createElement(Nav, { page: page, goHome: goHome, session: session, onNewTank: () => setShowNewTank(true), onSettings: () => setShowSettings(true), onFinanceiro: () => setShowFinanceiro(true), onRelatorios: () => setShowRelatorios(true), alerts: alerts, onStockIn: () => setShowStockIn(true), stock: stock }),
+        React.createElement(Nav, { page: page, goHome: goHome, session: session, role: role, onNewTank: () => setShowNewTank(true), onSettings: () => setShowSettings(true), onFinanceiro: () => setShowFinanceiro(true), onRelatorios: () => setShowRelatorios(true), alerts: alerts, onStockIn: () => setShowStockIn(true), stock: stock }),
         React.createElement("div", { style: { maxWidth: 1280, margin: "0 auto", padding: "14px 14px" } },
             page === "dashboard" && React.createElement(Dashboard, { onEdit: t => { setTankId(t.id); setShowEditTank(true); } }),
             page === "tank" && activeTank && (React.createElement(TankPage, { onEdit: () => setShowEditTank(true) }))),
@@ -737,15 +737,12 @@ function App() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // NAV — mobile-first com menu hambúrguer
 // ═══════════════════════════════════════════════════════════════════════════════
-function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, alerts, onStockIn, stock, session }) {
+function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, alerts, onStockIn, stock, session, role }) {
+  var _role = role || ROLES.admin;
     const [open, setOpen] = (0, useState)(false);
     const dangerCount = alerts.filter(a => a.level === "danger").length;
     const warnCount = alerts.filter(a => a.level === "warn").length;
     function close(fn) { return () => { setOpen(false); fn && fn(); }; }
-    // Session guard — after all hooks
-    if(!session) return React.createElement(LoginPage, { onLogin: s=>setSession(s) });
-    const role = ROLES[session.role]||ROLES.funcionario;
-
     return (React.createElement(React.Fragment, null,
         React.createElement("nav", { style: { height: 52, padding: "0 14px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
             React.createElement("button", { className: "hamburger", onClick: () => setOpen(o => !o), "aria-label": "Menu" },
@@ -776,12 +773,12 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                         React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Dashboard principal")))),
                 React.createElement("div", { className: "mob-divider" }),
                 React.createElement("div", { className: "mob-section" }, "A\u00E7\u00F5es"),
-                (role.canManage||role.canEdit) && React.createElement("div", { className: "mob-item", onClick: close(onNewTank) },
+                _role.canEditTanks && React.createElement("div", { className: "mob-item", onClick: close(onNewTank) },
                     React.createElement("span", { style: { fontSize: 22 } }, "\u2795"),
                     React.createElement("div", null,
                         React.createElement("div", null, "Novo Tanque"),
                         React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Cadastrar tanque de cria\u00E7\u00E3o"))),
-                role.canManageStock && React.createElement("div", { className: "mob-item", onClick: close(onStockIn) },
+                _role.canManageStock && React.createElement("div", { className: "mob-item", onClick: close(onStockIn) },
                     React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCE5"),
                     React.createElement("div", null,
                         React.createElement("div", null, "Entrada de Ra\u00E7\u00E3o"),
@@ -792,12 +789,12 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                             fmtBRL(stock.bags * stock.costPerBag)))),
                 React.createElement("div", { className: "mob-divider" }),
                 React.createElement("div", { className: "mob-section" }, "Sistema"),
-                (role.canViewFinance||role.canRegisterExpense) && React.createElement("div", { className: "mob-item", onClick: close(onFinanceiro) },
+                (_role.canViewFinance||_role.canRegisterExpense) && React.createElement("div", { className: "mob-item", onClick: close(onFinanceiro) },
                     React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCB0"),
                     React.createElement("div", null,
                         React.createElement("div", null, "Financeiro"),
                         React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "CAPEX \u00B7 OPEX \u00B7 Cronograma"))),
-                role.canViewReports && React.createElement("div", { className: "mob-item", onClick: close(onRelatorios) },
+                _role.canViewReports && React.createElement("div", { className: "mob-item", onClick: close(onRelatorios) },
                     React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCCB"),
                     React.createElement("div", null,
                         React.createElement("div", null, "Relat\u00F3rios"),
@@ -822,7 +819,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                     React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Criar e editar acessos"))),
             React.createElement("div", { className: "mob-item",
                 style: { borderColor: "rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)" },
-                onClick: close(() => { saveSession(null); setSession(null); }) },
+                onClick: () => { saveSession(null); setSession(null); setOpen(false); } },
                 React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDEAA"),
                 React.createElement("div", null,
                     React.createElement("div", { style: { color: "#f87171" } }, "Sair"),
@@ -2512,7 +2509,7 @@ function StockInModal({ onClose }) {
             // ── Chama o servidor proxy (evita bloqueio CORS do Safari) ──────────────
             // IMPORTANTE: substitua a URL abaixo pela URL do seu servidor Vercel
             // Exemplo: "https://aquagestao-api.vercel.app/api/ler-nf"
-            const SERVER_URL = window.AQUA_SERVER_URL || "https://aquagestao-api.vercel.app/api/ler-nf";
+            const SERVER_URL = window.AQUA_SERVER_URL || "/api/ler-nf";
             const resp = await fetch(SERVER_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
