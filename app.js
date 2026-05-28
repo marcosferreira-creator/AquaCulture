@@ -755,7 +755,7 @@ function App() {
 
     return (React.createElement(Ctx.Provider, { value: ctx },
         React.createElement("style", null, CSS),
-        React.createElement(Nav, { page: page, goHome: goHome, session: session, role: role, onNewTank: () => setShowNewTank(true), onSettings: () => setShowSettings(true), onFinanceiro: () => setShowFinanceiro(true), onRelatorios: () => setShowRelatorios(true), alerts: alerts, onStockIn: () => setShowStockIn(true), stock: stock }),
+        React.createElement(Nav, { page: page, goHome: goHome, session: session, role: role, onNewTank: () => setShowNewTank(true), onSettings: () => setShowSettings(true), onFinanceiro: () => setShowFinanceiro(true), onRelatorios: () => setShowRelatorios(true), alerts: alerts, onStockIn: () => setShowStockIn(true), stock: stock, onLogout: () => { saveSession(null); setSession(null); }, onUserMgmt: () => setShowUserMgmt(true) }),
         React.createElement("div", { style: { maxWidth: 1280, margin: "0 auto", padding: "14px 14px" } },
             page === "dashboard" && React.createElement(Dashboard, { onEdit: t => { setTankId(t.id); setShowEditTank(true); } }),
             page === "tank" && activeTank && (React.createElement(TankPage, { onEdit: () => setShowEditTank(true) }))),
@@ -770,7 +770,7 @@ function App() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // NAV — mobile-first com menu hambúrguer
 // ═══════════════════════════════════════════════════════════════════════════════
-function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, alerts, onStockIn, stock, session, role }) {
+function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, alerts, onStockIn, stock, session, role, onLogout, onUserMgmt }) {
   var _role = role || ROLES.admin;
     const [open, setOpen] = (0, useState)(false);
     const dangerCount = alerts.filter(a => a.level === "danger").length;
@@ -845,14 +845,14 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                     React.createElement("div", null, (session&&session.name)||'Usuário' || "Usu\u00E1rio"),
                     React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } },
                         (ROLES[(session&&session.role)||'admin'] || ROLES.manejo).label))),
-            (session&&session.role) === "admin" && React.createElement("div", { className: "mob-item", onClick: close(() => setShowUserMgmt(true)) },
+            _role.canManageUsers && React.createElement("div", { className: "mob-item", onClick: () => { setOpen(false); if(onUserMgmt) onUserMgmt(); } },
                 React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDC65"),
                 React.createElement("div", null,
                     React.createElement("div", null, "Gerenciar Usu\u00E1rios"),
                     React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Criar e editar acessos"))),
             React.createElement("div", { className: "mob-item",
                 style: { borderColor: "rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)" },
-                onClick: () => { saveSession(null); setSession(null); setOpen(false); } },
+                onClick: () => { setOpen(false); if(onLogout) onLogout(); } },
                 React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDEAA"),
                 React.createElement("div", null,
                     React.createElement("div", { style: { color: "#f87171" } }, "Sair"),
