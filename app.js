@@ -720,6 +720,12 @@ function App() {
         activeDate, setActiveDate, notifPerm, requestNotif,
         waterTimes, setWaterTimes,
     };
+    // ── Auth guard — must be after all hooks ──
+    if (!session) {
+      return React.createElement(LoginPage, { onLogin: function(s){ setSession(s); } });
+    }
+    var role = ROLES[session.role] || ROLES.admin;
+
     return (React.createElement(Ctx.Provider, { value: ctx },
         React.createElement("style", null, CSS),
         React.createElement(Nav, { page: page, goHome: goHome, session: session, role: role, onNewTank: () => setShowNewTank(true), onSettings: () => setShowSettings(true), onFinanceiro: () => setShowFinanceiro(true), onRelatorios: () => setShowRelatorios(true), alerts: alerts, onStockIn: () => setShowStockIn(true), stock: stock }),
