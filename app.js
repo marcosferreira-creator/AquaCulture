@@ -217,6 +217,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
 /* ── BOTTOM TAB BAR ── */
 .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:150;padding-bottom:env(safe-area-inset-bottom);}
+.pwa-top-fix{padding-top:env(safe-area-inset-top)!important;height:calc(52px + env(safe-area-inset-top))!important;}
+@supports(padding-top:env(safe-area-inset-top)){nav{padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top));}}
 .bottom-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;gap:4px;transition:color .15s;}
 .bottom-tab .ico{font-size:20px;line-height:1;}
 .bottom-tab.active{color:var(--accent);}
@@ -333,7 +335,7 @@ function AuditBadge({ stamp, style }){
 }
 
 // Default admin user — stored in localStorage
-const DEFAULT_ADMIN = { id:"admin001", name:"Marcos Ferreira", email:"marcosferreira.026@icloud.com", role:"admin", password:"aqua@2024" };
+const DEFAULT_ADMIN = { id:"admin001", name:"Marcos Ferreira", email:"marcos.ferreira.026@icloud.com", role:"admin", password:"aqua@2024" };
 
 function getUsers(){ try{ return JSON.parse(localStorage.getItem("aq_users")||"[]"); }catch(e){return [];} }
 function saveUsers(u){ localStorage.setItem("aq_users",JSON.stringify(u)); }
@@ -350,29 +352,27 @@ function saveSession(s){ if(s) localStorage.setItem("aq_session",JSON.stringify(
 
 // ── Login Page ────────────────────────────────────────────────────────────────
 function LoginPage({ onLogin }){
-  const [email, setEmail]   = useState(()=>localStorage.getItem("aq_remember_email")||"");
-  const [pass,  setPass]    = useState(()=>localStorage.getItem("aq_remember_pass")||"");
-  const [remember, setRemember] = useState(()=>!!localStorage.getItem("aq_remember_email"));
-  const [error, setError]   = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [showForgot, setShowForgot] = useState(false);
+  var email    = (useState(function(){ return localStorage.getItem("aq_remember_email")||""; }));
+  var setEmail = email[1]; email = email[0];
+  var pass     = (useState(function(){ return localStorage.getItem("aq_remember_pass")||""; }));
+  var setPass  = pass[1]; pass = pass[0];
+  var remember = (useState(function(){ return !!localStorage.getItem("aq_remember_email"); }));
+  var setRemember = remember[1]; remember = remember[0];
+  var error    = (useState("")); var setError = error[1]; error = error[0];
+  var showPass = (useState(false)); var setShowPass = showPass[1]; showPass = showPass[0];
+  var loading  = (useState(false)); var setLoading = loading[1]; loading = loading[0];
+  var showForgot = (useState(false)); var setShowForgot = showForgot[1]; showForgot = showForgot[0];
 
   function handleLogin(){
     setError(""); setLoading(true);
-    setTimeout(()=>{
-      const users = getUsers();
-      const user  = users.find(u=> u.email.toLowerCase()===email.trim().toLowerCase() && u.password===pass);
+    setTimeout(function(){
+      var users = getUsers();
+      var user  = users.find(function(u){ return u.email.toLowerCase()===email.trim().toLowerCase() && u.password===pass; });
       if(user){
-        const session = { id:user.id, name:user.name, email:user.email, role:user.role, loginAt: new Date().toISOString() };
+        var session = { id:user.id, name:user.name, email:user.email, role:user.role, loginAt: new Date().toISOString() };
         saveSession(session);
-        if(remember){
-          localStorage.setItem("aq_remember_email", email.trim());
-          localStorage.setItem("aq_remember_pass", pass);
-        } else {
-          localStorage.removeItem("aq_remember_email");
-          localStorage.removeItem("aq_remember_pass");
-        }
+        if(remember){ localStorage.setItem("aq_remember_email",email.trim()); localStorage.setItem("aq_remember_pass",pass); }
+        else { localStorage.removeItem("aq_remember_email"); localStorage.removeItem("aq_remember_pass"); }
         onLogin(session);
       } else {
         setError("E-mail ou senha incorretos.");
@@ -381,67 +381,94 @@ function LoginPage({ onLogin }){
     }, 600);
   }
 
-  return (
-    React.createElement("div", { style:{minHeight:"100vh",background:"#060e1a",display:"flex",alignItems:"center",justifyContent:"center",padding:20} },
-      React.createElement("div", { style:{width:"100%",maxWidth:380} },
-        // Logo
-        React.createElement("div", { style:{textAlign:"center",marginBottom:32} },
-          React.createElement("img", { src:"/icon.png", style:{width:100,height:100,borderRadius:20,objectFit:"cover",marginBottom:16} }),
-          React.createElement("div", { style:{fontWeight:800,fontSize:26,color:"#fff",letterSpacing:"-0.5px"} }, "AquaCulture"),
-          React.createElement("div", { style:{fontSize:13,color:"#5a7a9a",marginTop:4} }, "Sistema de Gestão de Piscicultura")
+  var iconSrc = "/icon.png";
+
+  return React.createElement("div", {
+    style:{minHeight:"100vh",background:"#060e1a",display:"flex",alignItems:"flex-start",
+           justifyContent:"center",padding:"calc(env(safe-area-inset-top) + 40px) 20px 40px",
+           overflowY:"auto",boxSizing:"border-box"}
+  },
+    React.createElement("div", {style:{width:"100%",maxWidth:380}},
+      React.createElement("div", {style:{textAlign:"center",marginBottom:32}},
+        React.createElement("img", {src:iconSrc,style:{width:90,height:90,borderRadius:18,objectFit:"cover",marginBottom:16}}),
+        React.createElement("div", {style:{fontWeight:800,fontSize:26,color:"#fff",letterSpacing:"-0.5px"}}, "AquaCulture"),
+        React.createElement("div", {style:{fontSize:13,color:"#5a7a9a",marginTop:4}}, "Sistema de Gestão de Piscicultura")
+      ),
+      React.createElement("div", {
+        style:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",
+               borderRadius:16,padding:28}
+      },
+        React.createElement("div", {style:{fontSize:16,fontWeight:700,color:"#fff",marginBottom:20}}, "Entrar na sua conta"),
+        React.createElement("div", {style:{marginBottom:14}},
+          React.createElement("label", {style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6}}, "E-mail"),
+          React.createElement("input", {
+            type:"email", placeholder:"seu@email.com", value:email,
+            onChange:function(e){ setEmail(e.target.value); },
+            onKeyDown:function(e){ if(e.key==="Enter") handleLogin(); },
+            style:{width:"100%",padding:"12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}
+          })
         ),
-        // Card
-        React.createElement("div", { style:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16,padding:28} },
-          React.createElement("div", { style:{fontSize:16,fontWeight:700,color:"#fff",marginBottom:20} }, "Entrar na sua conta"),
-          // Email
-          React.createElement("div", { style:{marginBottom:14} },
-            React.createElement("label", { style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6} }, "E-mail"),
-            React.createElement("input", {
-              type:"email", placeholder:"seu@email.com",
-              value:email, onChange:e=>setEmail(e.target.value),
-              onKeyDown:e=>e.key==="Enter"&&handleLogin(),
-              style:{width:"100%",padding:"12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}
-            })
-          ),
-          // Password
-          React.createElement("div", { style:{marginBottom:20,position:"relative"} },
-            React.createElement("label", { style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6} }, "Senha"),
-            React.createElement("input", {
-              type:showPass?"text":"password", placeholder:"••••••••",
-              value:pass, onChange:e=>setPass(e.target.value),
-              onKeyDown:e=>e.key==="Enter"&&handleLogin(),
-              style:{width:"100%",padding:"12px 40px 12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}
-            }),
-            React.createElement("button", {
-              onClick:()=>setShowPass(p=>!p),
-              style:{position:"absolute",right:12,top:34,background:"none",border:"none",cursor:"pointer",color:"#5a7a9a",fontSize:16}
-            }, showPass?"🙈":"👁️")
-          ),
-          // Error
-          error && React.createElement("div", { style:{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:8,padding:"10px 13px",fontSize:13,color:"#f87171",marginBottom:16} }, error),
-          // Button
-          React.createElement("div", { style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16} },
-            React.createElement("label", { style:{display:"flex",alignItems:"center",gap:7,cursor:"pointer",fontSize:13,color:"#5a7a9a"} },
-              React.createElement("input", { type:"checkbox", checked:remember, onChange:e=>setRemember(e.target.checked),
-                style:{width:16,height:16,accentColor:"#0ea5e9",cursor:"pointer"} }),
-              " Lembrar minha senha"),
-            React.createElement("button", { onClick:()=>setShowForgot(true),
-              style:{background:"none",border:"none",cursor:"pointer",color:"#0ea5e9",fontSize:13,fontFamily:"inherit"} },
-              "Esqueci minha senha")),
+        React.createElement("div", {style:{marginBottom:16,position:"relative"}},
+          React.createElement("label", {style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6}}, "Senha"),
+          React.createElement("input", {
+            type:showPass?"text":"password", placeholder:"••••••••", value:pass,
+            onChange:function(e){ setPass(e.target.value); },
+            onKeyDown:function(e){ if(e.key==="Enter") handleLogin(); },
+            style:{width:"100%",padding:"12px 40px 12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",boxSizing:"border-box"}
+          }),
           React.createElement("button", {
-            onClick:handleLogin,
-            disabled:loading||!email||!pass,
-            style:{width:"100%",padding:13,background:loading||!email||!pass?"rgba(14,165,233,0.4)":"linear-gradient(135deg,#0ea5e9,#0284c7)",border:"none",borderRadius:10,color:"#fff",fontSize:15,fontWeight:700,cursor:loading||!email||!pass?"not-allowed":"pointer",fontFamily:"inherit"}
-          }, loading?"Entrando...":"Entrar")
+            onClick:function(){ setShowPass(function(p){ return !p; }); },
+            style:{position:"absolute",right:12,top:34,background:"none",border:"none",cursor:"pointer",color:"#5a7a9a",fontSize:16}
+          }, showPass?"🙈":"👁️")
         ),
-        React.createElement("div", { style:{textAlign:"center",marginTop:20,fontSize:12,color:"#5a7a9a"} },
-          "Não tem acesso? Entre em contato com o administrador.")
+        React.createElement("div", {style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}},
+          React.createElement("label", {style:{display:"flex",alignItems:"center",gap:7,cursor:"pointer",fontSize:13,color:"#5a7a9a"}},
+            React.createElement("input", {
+              type:"checkbox", checked:remember,
+              onChange:function(e){ setRemember(e.target.checked); },
+              style:{width:16,height:16,accentColor:"#0ea5e9",cursor:"pointer"}
+            }),
+            " Lembrar minha senha"
+          ),
+          React.createElement("button", {
+            onClick:function(){ setShowForgot(true); },
+            style:{background:"none",border:"none",cursor:"pointer",color:"#0ea5e9",fontSize:13,fontFamily:"inherit"}
+          }, "Esqueci minha senha")
+        ),
+        error && React.createElement("div", {
+          style:{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:8,padding:"10px 13px",fontSize:13,color:"#f87171",marginBottom:16}
+        }, error),
+        React.createElement("button", {
+          onClick:handleLogin,
+          disabled:loading||!email||!pass,
+          style:{width:"100%",padding:13,background:loading||!email||!pass?"rgba(14,165,233,0.4)":"linear-gradient(135deg,#0ea5e9,#0284c7)",border:"none",borderRadius:10,color:"#fff",fontSize:15,fontWeight:700,cursor:loading||!email||!pass?"not-allowed":"pointer",fontFamily:"inherit"}
+        }, loading?"Entrando...":"Entrar")
+      ),
+      React.createElement("div", {style:{textAlign:"center",marginTop:20,fontSize:12,color:"#5a7a9a"}},
+        "Não tem acesso? Entre em contato com o administrador."
+      )
+    ),
+    showForgot && React.createElement("div", {
+      style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(10px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}
+    },
+      React.createElement("div", {
+        style:{background:"#0d1829",border:"1px solid rgba(255,255,255,0.12)",borderRadius:16,padding:28,width:"100%",maxWidth:360}
+      },
+        React.createElement("div", {style:{fontWeight:700,fontSize:16,color:"#fff",marginBottom:8}}, "Recuperar Senha"),
+        React.createElement("div", {style:{fontSize:13,color:"#5a7a9a",marginBottom:18,lineHeight:1.6}},
+          "Entre em contato com o administrador para redefinir sua senha:",
+          React.createElement("a", {href:"mailto:marcos.ferreira.026@icloud.com",style:{color:"#0ea5e9",display:"block",marginTop:6}},
+            "marcos.ferreira.026@icloud.com")
+        ),
+        React.createElement("button", {
+          onClick:function(){ setShowForgot(false); },
+          style:{width:"100%",padding:12,background:"rgba(14,165,233,0.15)",border:"1px solid rgba(14,165,233,0.3)",borderRadius:9,color:"#0ea5e9",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}
+        }, "Fechar")
       )
     )
   );
 }
 
-// ── User Management Modal ─────────────────────────────────────────────────────
 function UserManagementModal({ onClose, currentUser }){
   const [users, setUsersState] = useState(getUsers);
   const [tab, setTab] = useState("list");
@@ -750,7 +777,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
     const warnCount = alerts.filter(a => a.level === "warn").length;
     function close(fn) { return () => { setOpen(false); fn && fn(); }; }
     return (React.createElement(React.Fragment, null,
-        React.createElement("nav", { style: { height: 52, padding: "0 14px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
+        React.createElement("nav", { style: { height: "calc(52px + env(safe-area-inset-top))", paddingTop: "env(safe-area-inset-top)", padding: "0 14px", paddingLeft: 14, paddingRight: 14, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
             React.createElement("button", { className: "hamburger", onClick: () => setOpen(o => !o), "aria-label": "Menu" },
                 React.createElement("span", { style: { transform: open ? "rotate(45deg) translate(5px,5px)" : "none" } }),
                 React.createElement("span", { style: { opacity: open ? 0 : 1 } }),
