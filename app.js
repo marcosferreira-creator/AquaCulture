@@ -445,7 +445,7 @@ function LoginPage({ onLogin }){
 function UserManagementModal({ onClose, currentUser }){
   const [users, setUsersState] = useState(getUsers);
   const [tab, setTab] = useState("list");
-  const [form, setForm] = useState({ name:"", email:"", role:"funcionario", password:"" });
+  const [form, setForm] = useState({ name:"", email:"", role:"manejo", password:"" });
   const [editId, setEditId] = useState(null);
   const [msg, setMsg] = useState("");
 
@@ -462,7 +462,7 @@ function UserManagementModal({ onClose, currentUser }){
       saveUsers([...all, { id:"u"+Date.now(), ...form }]);
     }
     setMsg(editId?"✅ Usuário atualizado!":"✅ Usuário criado!");
-    setForm({name:"",email:"",role:"funcionario",password:""});
+    setForm({name:"",email:"",role:"manejo",password:""});
     setEditId(null);
     refresh();
     setTimeout(()=>setMsg(""),2500);
@@ -495,7 +495,7 @@ function UserManagementModal({ onClose, currentUser }){
       // Tabs
       React.createElement("div", { style:{display:"flex",gap:4,padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"#060e1a"} },
         ["list","form"].map(t=>
-          React.createElement("button", { key:t, onClick:()=>{setTab(t);setEditId(null);setForm({name:"",email:"",role:"funcionario",password:""});},
+          React.createElement("button", { key:t, onClick:()=>{setTab(t);setEditId(null);setForm({name:"",email:"",role:"manejo",password:""});},
             style:{padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:13,
               background:tab===t?"#0ea5e9":"rgba(255,255,255,0.05)",color:tab===t?"#fff":"#5a7a9a"} },
             t==="list"?"👥 Usuários":"➕ "+(editId?"Editar":"Novo")
@@ -508,7 +508,7 @@ function UserManagementModal({ onClose, currentUser }){
 
         tab==="list" && React.createElement("div", { style:{display:"flex",flexDirection:"column",gap:10} },
           users.map(u=>{
-            const role = ROLES[u.role]||ROLES.funcionario;
+            const role = ROLES[u.role]||ROLES.manejo;
             return React.createElement("div", { key:u.id, style:{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12} },
               React.createElement("div", { style:{width:40,height:40,borderRadius:"50%",background:`${role.color}22`,border:`2px solid ${role.color}44`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0} },
                 u.role==="admin"?"👑":u.role==="manejo"?"👷":u.role==="financeiro"?"💼":"🏢"
@@ -811,8 +811,8 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                 React.createElement("div", null,
                     React.createElement("div", null, (session&&session.name)||'Usuário' || "Usu\u00E1rio"),
                     React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } },
-                        (ROLES[(session&&session.role)||'funcionario'] || ROLES.funcionario).label))),
-            (session&&session.role)||'funcionario' === "admin" && React.createElement("div", { className: "mob-item", onClick: close(() => setShowUserMgmt(true)) },
+                        (ROLES[(session&&session.role)||'admin'] || ROLES.manejo).label))),
+            (session&&session.role) === "admin" && React.createElement("div", { className: "mob-item", onClick: close(() => setShowUserMgmt(true)) },
                 React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDC65"),
                 React.createElement("div", null,
                     React.createElement("div", null, "Gerenciar Usu\u00E1rios"),
