@@ -344,9 +344,37 @@ function saveSession(s){ if(s) localStorage.setItem("aq_session",JSON.stringify(
 
 // Init admin if first run
 (function initAuth(){
-  const users = getUsers();
-  if(!users.find(u=>u.id==="admin001")){
-    saveUsers([DEFAULT_ADMIN]);
+  try {
+    // Try to get users — if corrupt, reset
+    var raw = localStorage.getItem("aq_users");
+    var users = [];
+    try {
+      users = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(users)) users = [];
+    } catch(e) {
+      users = [];
+    }
+    // Always ensure admin exists
+    if (!users.find(function(u){ return u.id === "admin001"; })) {
+      // Add admin — keep existing users if any
+      users.unshift(DEFAULT_ADMIN);
+      localStorage.setItem("aq_users", JSON.stringify(users));
+    } else {
+      // Admin exists — update email/password in case they changed
+      users = users.map(function(u){
+        if (u.id === "admin001") {
+          return Object.assign({}, u, {
+            email: DEFAULT_ADMIN.email,
+            name:  DEFAULT_ADMIN.name
+          });
+        }
+        return u;
+      });
+      localStorage.setItem("aq_users", JSON.stringify(users));
+    }
+  } catch(e) {
+    // Last resort — reset everything
+    localStorage.setItem("aq_users", JSON.stringify([DEFAULT_ADMIN]));
   }
 })();
 
