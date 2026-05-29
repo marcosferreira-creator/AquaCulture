@@ -217,7 +217,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
 /* ── BOTTOM TAB BAR ── */
 .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:150;padding-bottom:env(safe-area-inset-bottom);}
-.pwa-top-fix{padding-top:env(safe-area-inset-top)!important;height:calc(52px + env(safe-area-inset-top))!important;}
+.pwa-top-fix{padding-top:env(safe-area-inset-top)!important;height:calc(44px + env(safe-area-inset-top))!important;}
 @supports(padding-top:env(safe-area-inset-top)){nav{padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top));}}
 .bottom-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;gap:4px;transition:color .15s;}
 .bottom-tab .ico{font-size:20px;line-height:1;}
@@ -777,7 +777,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
     const warnCount = alerts.filter(a => a.level === "warn").length;
     function close(fn) { return () => { setOpen(false); fn && fn(); }; }
     return (React.createElement(React.Fragment, null,
-        React.createElement("nav", { style: { height: "calc(52px + env(safe-area-inset-top))", paddingTop: "env(safe-area-inset-top)", padding: "0 14px", paddingLeft: 14, paddingRight: 14, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
+        React.createElement("nav", { style: { height: "calc(44px + env(safe-area-inset-top))", paddingTop: "env(safe-area-inset-top)", padding: "0 14px", paddingLeft: 14, paddingRight: 14, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
             React.createElement("button", { className: "hamburger", onClick: () => setOpen(o => !o), "aria-label": "Menu" },
                 React.createElement("span", { style: { transform: open ? "rotate(45deg) translate(5px,5px)" : "none" } }),
                 React.createElement("span", { style: { opacity: open ? 0 : 1 } }),
@@ -845,14 +845,14 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                     React.createElement("div", null, (session&&session.name)||'Usuário' || "Usu\u00E1rio"),
                     React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } },
                         (ROLES[(session&&session.role)||'admin'] || ROLES.manejo).label))),
-            _role.canManageUsers && React.createElement("div", { className: "mob-item", onClick: () => { setOpen(false); if(onUserMgmt) onUserMgmt(); } },
+            (_role.canManageUsers || (session && session.role === "admin")) && React.createElement("div", { className: "mob-item", onClick: (e) => { e.stopPropagation(); setOpen(false); if(onUserMgmt) onUserMgmt(); } },
                 React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDC65"),
                 React.createElement("div", null,
                     React.createElement("div", null, "Gerenciar Usu\u00E1rios"),
                     React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 400 } }, "Criar e editar acessos"))),
             React.createElement("div", { className: "mob-item",
                 style: { borderColor: "rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.06)" },
-                onClick: () => { setOpen(false); if(onLogout) onLogout(); } },
+                onClick: (e) => { e.stopPropagation(); setOpen(false); if(onLogout) onLogout(); } },
                 React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDEAA"),
                 React.createElement("div", null,
                     React.createElement("div", { style: { color: "#f87171" } }, "Sair"),
@@ -1406,6 +1406,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
         var _a, _b, _c, _d, _e, _f, _g;
         return ({
             active: !!((_a = dl.engVisit) === null || _a === void 0 ? void 0 : _a.active),
+            visitTime: (dl.engVisit && dl.engVisit.visitTime) || "",
             ph: ((_b = dl.engVisit) === null || _b === void 0 ? void 0 : _b.ph) || "",
             ammonia: ((_c = dl.engVisit) === null || _c === void 0 ? void 0 : _c.ammonia) || "",
             hardness: ((_d = dl.engVisit) === null || _d === void 0 ? void 0 : _d.hardness) || "",
@@ -1650,6 +1651,14 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                     React.createElement("lbl", { style: { color: "#a78bfa" } }, "Alcalinidade (mg/L CaCO\u2083)"),
                     React.createElement("input", { className: "inp", type: "number", step: "1", placeholder: "ideal 30\u2013150", value: engVisit.alkalinity, onChange: e => setEngVisit(p => ({ ...p, alkalinity: e.target.value })) }))),
             React.createElement("div", { className: "grid2" },
+                React.createElement("div", null,
+                    React.createElement("lbl", { style: { color: "#a78bfa" } }, "Hor\u00E1rio da Visita"),
+                    React.createElement("input", { type: "time", className: "inp",
+                        style: { fontFamily: "var(--mono)", fontSize: 15 },
+                        value: engVisit.visitTime || "",
+                        onChange: function(e) { setEngVisit(function(p) { return Object.assign({}, p, { visitTime: e.target.value }); }); }
+                    })
+                ),
                 React.createElement("div", null,
                     React.createElement("lbl", { style: { color: "#a78bfa" } }, "Nome do Engenheiro"),
                     React.createElement("input", { className: "inp", placeholder: "ex: Dr. Jo\u00E3o Silva", value: engVisit.engineer, onChange: e => setEngVisit(p => ({ ...p, engineer: e.target.value })) })),
