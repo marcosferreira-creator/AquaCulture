@@ -172,7 +172,7 @@ body{background:var(--navy);color:var(--text);font-family:var(--font);min-height
 input,select,textarea{outline:none;font-family:var(--font);}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;}
 .card2{background:var(--card2);border:1px solid var(--border2);border-radius:10px;}
-.inp{background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:9px;padding:9px 13px;color:var(--text);font-size:13px;width:100%;transition:border-color .2s;}
+.inp{background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:9px;padding:9px 13px;color:var(--text);font-size:13px;width:100%;transition:border-color .2s;color-scheme:dark;}select.inp,select{color-scheme:dark;background:#0d1829!important;color:#e2e8f0!important;}option{background:#0d1829!important;color:#e2e8f0!important;}
 .inp:focus{border-color:var(--accent);}
 .inp option{background:#0b1626;}
 .btn{border:none;border-radius:9px;padding:9px 18px;cursor:pointer;font-family:var(--font);font-weight:600;font-size:13px;transition:all .2s;}
@@ -217,7 +217,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
 /* ── BOTTOM TAB BAR ── */
 .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:150;padding-bottom:env(safe-area-inset-bottom);}
-.pwa-top-fix{padding-top:env(safe-area-inset-top)!important;height:calc(44px + env(safe-area-inset-top))!important;}
+.pwa-top-fix{padding-top:env(safe-area-inset-top)!important;height:calc(52px + env(safe-area-inset-top, 20px))!important;}
 @supports(padding-top:env(safe-area-inset-top)){nav{padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top));}}
 .bottom-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;gap:4px;transition:color .15s;}
 .bottom-tab .ico{font-size:20px;line-height:1;}
@@ -237,12 +237,16 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .kpi-chip .lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
 
 /* ── PAGE PADDING FOR BOTTOM BAR ── */
-.page-content{padding-bottom:80px;}
+.page-content{padding-bottom:90px;padding-top:8px;}
 
 /* ── FULL WIDTH GRID ON MOBILE ── */
 @media(max-width:600px){
   .grid2,.grid3,.grid4{grid-template-columns:1fr!important;}
   .kpi-row .kpi-chip{min-width:90px;}
+}
+@supports(padding-top:env(safe-area-inset-top)){
+  nav{padding-top:max(env(safe-area-inset-top),12px)!important;}
+  .mob-menu{padding-top:calc(max(env(safe-area-inset-top),12px) + 60px)!important;}
 }
 `;
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -599,7 +603,7 @@ function UserManagementModal({ onClose, currentUser }){
           React.createElement("div", null,
             React.createElement("label", { style:{fontSize:11,fontWeight:700,color:"#5a7a9a",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:6} }, "Perfil de Acesso"),
             React.createElement("select", { value:form.role, onChange:e=>setForm(p=>({...p,role:e.target.value})),
-              style:{width:"100%",padding:"11px 13px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:9,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none"} },
+              style:{width:"100%",padding:"11px 13px",background:"#0d1829",border:"1px solid rgba(255,255,255,0.12)",borderRadius:9,color:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",colorScheme:"dark"} },
               React.createElement("option", {value:"admin"},      "👑 Administrador — acesso total"),
               React.createElement("option", {value:"manejo"},     "👷 Manejo — O₂, ração, biometria, qualidade água"),
               React.createElement("option", {value:"financeiro"}, "💼 Financeiro — lança despesas, sem ver totais"),
@@ -805,7 +809,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
     const warnCount = alerts.filter(a => a.level === "warn").length;
     function close(fn) { return () => { setOpen(false); fn && fn(); }; }
     return (React.createElement(React.Fragment, null,
-        React.createElement("nav", { style: { height: "calc(44px + env(safe-area-inset-top))", paddingTop: "env(safe-area-inset-top)", padding: "0 14px", paddingLeft: 14, paddingRight: 14, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
+        React.createElement("nav", { style: { height: "calc(52px + env(safe-area-inset-top, 20px))", paddingTop: "max(env(safe-area-inset-top, 20px), 12px)", padding: "0 14px", paddingLeft: 14, paddingRight: 14, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
             React.createElement("button", { className: "hamburger", onClick: () => setOpen(o => !o), "aria-label": "Menu" },
                 React.createElement("span", { style: { transform: open ? "rotate(45deg) translate(5px,5px)" : "none" } }),
                 React.createElement("span", { style: { opacity: open ? 0 : 1 } }),
