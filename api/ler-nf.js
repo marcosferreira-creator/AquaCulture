@@ -19,7 +19,19 @@ export default async function handler(req, res) {
       ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } }
       : { type: "image",    source: { type: "base64", media_type: mediaType,          data: base64 } };
 
-    const prompt = `Voce esta lendo uma nota fiscal brasileira de racao para piscicultura. Extraia os dados e responda SOMENTE em JSON puro, sem markdown, sem texto adicional. Se nao encontrar um campo use string vazia "". {"supplier":"razao social do fornecedor emitente","nfNumber":"numero da nota fiscal apenas digitos","date":"data de emissao no formato YYYY-MM-DD","feedType":"tipo de racao como Extrusada flutuante Extrusada semi-afundante ou Peletizada","feedBrand":"marca ou fabricante da racao","proteinPct":"percentual de proteina bruta escolha o mais proximo entre 45% 40% 36% 32% 28%","bags":"quantidade de sacos de 25kg como numero inteiro se vier em kg divida por 25 e arredonde","totalValue":"valor total da nota apenas o numero sem R$","costPerBag":"valor por saco de 25kg calcule se necessario","payMethod":"forma de pagamento PIX A vista Boleto 30d Boleto 60d Cartao ou Transferencia","obs":"vencimento frete desconto ou outras observacoes relevantes"}`;
+    const prompt = `Voce esta lendo uma nota fiscal brasileira de racao para piscicultura.
+Extraia TODOS os dados com maxima precisao e responda SOMENTE em JSON puro, sem markdown.
+Se nao encontrar um campo use string vazia "".
+
+INSTRUCOES ESPECIFICAS:
+- feedType: identifique o TIPO EXATO da racao. Ex: "Extrusada Flutuante 4mm", "Extrusada Semi-afundante 6mm", "Peletizada 8mm". Inclua o tamanho do pellet se houver.
+- feedBrand: marca comercial da racao. Ex: "Guabi Nautilus", "Supra Primar", "Nutron".
+- proteinPct: percentual de Proteina Bruta (PB%) indicado na embalagem ou nota. Escolha o mais proximo entre: 45%, 40%, 36%, 32%, 28%. Se houver mais de uma racao na nota, use a do maior volume.
+- bags: quantidade TOTAL de sacos de 25kg. Se a nota listar multiplos itens, some todos os sacos de 25kg. Se vier em kg totais, divida por 25.
+- totalValue: valor total liquido da nota em reais, apenas o numero.
+- costPerBag: calcule dividindo totalValue por bags se nao estiver explicito.
+
+{"supplier":"razao social completa do fornecedor emitente","nfNumber":"numero da NF apenas digitos","date":"data de emissao YYYY-MM-DD","feedType":"tipo tamanho e formato da racao","feedBrand":"marca comercial completa","proteinPct":"% PB escolha entre 45% 40% 36% 32% 28%","bags":"total de sacos 25kg como numero inteiro","totalValue":"valor total em reais so o numero","costPerBag":"valor por saco 25kg","payMethod":"PIX A vista Boleto 30d Boleto 60d Cartao Transferencia","obs":"vencimento frete desconto ou observacoes relevantes"}`;
 
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -53,4 +65,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message || String(err) });
   }
 }
-
