@@ -1,6 +1,157 @@
 
     const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
     const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } = Recharts;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SUPABASE — Banco de dados na nuvem
+// ═══════════════════════════════════════════════════════════════════════════════
+var SB_URL = "https://emwiklhtgtyidlashdeo.supabase.co";
+var SB_KEY = "sb_publishable_I4_rnUX6-I8GSfJhXqAYTw_ZG6A1I0A";
+
+async function sbRequest(method, table, body, params) {
+  var url = SB_URL + "/rest/v1/" + table;
+  if (params) url += "?" + params;
+  var opts = {
+    method: method,
+    headers: {
+      "apikey": SB_KEY,
+      "Authorization": "Bearer " + SB_KEY,
+      "Content-Type": "application/json",
+      "Prefer": method === "POST" ? "resolution=merge-duplicates,return=minimal" : "return=minimal"
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    var r = await fetch(url, opts);
+    if (!r.ok) {
+      var err = await r.text().catch(function(){ return ""; });
+      console.warn("Supabase", method, table, r.status, err.slice(0,100));
+      return null;
+    }
+    var txt = await r.text();
+    return txt ? JSON.parse(txt) : null;
+  } catch(e) {
+    console.warn("Supabase offline:", e.message);
+    return null;
+  }
+}
+
+// ── DB helpers ────────────────────────────────────────────────────────────────
+var DB = {
+  // Users
+  async getUsers() {
+    var rows = await sbRequest("GET","ac_users","","select=*");
+    return rows || [];
+  },
+  async saveUser(user) {
+    return sbRequest("POST","ac_users",user,"");
+  },
+  async updateUser(user) {
+    return sbRequest("PATCH","ac_users",user,"id=eq."+user.id);
+  },
+  async deleteUser(id) {
+    return sbRequest("DELETE","ac_users",null,"id=eq."+id);
+  },
+  // Tanks
+  async getTanks() {
+    var rows = await sbRequest("GET","ac_tanks","","select=*");
+    if (!rows || !rows.length) return [];
+    return rows.map(function(r){ return r.data; });
+  },
+  async saveTank(tank) {
+    return sbRequest("POST","ac_tanks",{ id:tank.id, data:tank, updated_at:new Date().toISOString() },"");
+  },
+  async deleteTank(id) {
+    await sbRequest("DELETE","ac_logs",null,"tank_id=eq."+id);
+    await sbRequest("DELETE","ac_expenses",null,"tank_id=eq."+id);
+    return sbRequest("DELETE","ac_tanks",null,"id=eq."+id);
+  },
+  // Logs
+  async getLogs() {
+    var rows = await sbRequest("GET","ac_logs","","select=*");
+    if (!rows || !rows.length) return {};
+    var result = {};
+    rows.forEach(function(r) {
+      if (!result[r.tank_id]) result[r.tank_id] = {};
+      result[r.tank_id][r.log_date] = r.data;
+    });
+    return result;
+  },
+  async saveLog(tankId, date, data) {
+    return sbRequest("POST","ac_logs",{ tank_id:tankId, log_date:date, data:data, updated_at:new Date().toISOString() },"");
+  },
+  // Expenses
+  async getExpenses() {
+    var rows = await sbRequest("GET","ac_expenses","","select=*");
+    if (!rows || !rows.length) return {};
+    var result = {};
+    rows.forEach(function(r) { result[r.tank_id] = r.data; });
+    return result;
+  },
+  async saveExpenses(tankId, data) {
+    return sbRequest("POST","ac_expenses",{ tank_id:tankId, data:data, updated_at:new Date().toISOString() },"");
+  },
+  // Stock
+  async getStock() {
+    var rows = await sbRequest("GET","ac_stock","","id=eq.1&select=data");
+    return rows && rows[0] ? rows[0].data : null;
+  },
+  async saveStock(data) {
+    return sbRequest("POST","ac_stock",{ id:1, data:data, updated_at:new Date().toISOString() },"");
+  },
+  // CAPEX
+  async getCapex() {
+    var rows = await sbRequest("GET","ac_capex","","id=eq.1&select=data");
+    return rows && rows[0] ? rows[0].data : [];
+  },
+  async saveCapex(data) {
+    return sbRequest("POST","ac_capex",{ id:1, data:data, updated_at:new Date().toISOString() },"");
+  },
+  // OPEX
+  async getOpex() {
+    var rows = await sbRequest("GET","ac_opex","","id=eq.1&select=data");
+    return rows && rows[0] ? rows[0].data : [];
+  },
+  async saveOpex(data) {
+    return sbRequest("POST","ac_opex",{ id:1, data:data, updated_at:new Date().toISOString() },"");
+  },
+};
+
+// ── Migration: move localStorage data to Supabase on first run ────────────────
+async function migrateLocalToSupabase() {
+  var migrated = localStorage.getItem("aq_migrated_v1");
+  if (migrated) return;
+  console.log("Migrando dados locais para Supabase...");
+  try {
+    // Tanks
+    var localTanks = JSON.parse(localStorage.getItem("aq_tanks")||"[]");
+    for (var t of localTanks) { await DB.saveTank(t); }
+    // Logs
+    var localLogs = JSON.parse(localStorage.getItem("aq_logs")||"{}");
+    for (var tankId in localLogs) {
+      for (var date in localLogs[tankId]) {
+        await DB.saveLog(tankId, date, localLogs[tankId][date]);
+      }
+    }
+    // Expenses
+    var localExp = JSON.parse(localStorage.getItem("aq_exp")||"{}");
+    for (var tid in localExp) { await DB.saveExpenses(tid, localExp[tid]); }
+    // Stock
+    var localStock = JSON.parse(localStorage.getItem("aq_stoc")||"null");
+    if (localStock) await DB.saveStock(localStock);
+    // CAPEX / OPEX
+    var localCapex = JSON.parse(localStorage.getItem("aq_capex")||"[]");
+    if (localCapex.length) await DB.saveCapex(localCapex);
+    var localOpex = JSON.parse(localStorage.getItem("aq_opex_g")||"[]");
+    if (localOpex.length) await DB.saveOpex(localOpex);
+
+    localStorage.setItem("aq_migrated_v1", "1");
+    console.log("✅ Migração concluída!");
+  } catch(e) {
+    console.warn("Migração parcial:", e);
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // UNIT SYSTEM
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -397,8 +548,9 @@ function LoginPage({ onLogin }){
 
   function handleLogin(){
     setError(""); setLoading(true);
-    setTimeout(function(){
-      var users = getUsers();
+    // Try Supabase first, fallback to localStorage
+    DB.getUsers().then(function(dbUsers) {
+      var users = (dbUsers && dbUsers.length > 0) ? dbUsers : getUsers();
       var user  = users.find(function(u){ return u.email.toLowerCase()===email.trim().toLowerCase() && u.password===pass; });
       if(user){
         var session = { id:user.id, name:user.name, email:user.email, role:user.role, loginAt: new Date().toISOString() };
@@ -410,7 +562,18 @@ function LoginPage({ onLogin }){
         setError("E-mail ou senha incorretos.");
       }
       setLoading(false);
-    }, 600);
+    }).catch(function() {
+      var users = getUsers();
+      var user = users.find(function(u){ return u.email.toLowerCase()===email.trim().toLowerCase() && u.password===pass; });
+      if(user){
+        var session = { id:user.id, name:user.name, email:user.email, role:user.role, loginAt: new Date().toISOString() };
+        saveSession(session);
+        if(remember){ localStorage.setItem("aq_remember_email",email.trim()); localStorage.setItem("aq_remember_pass",pass); }
+        else { localStorage.removeItem("aq_remember_email"); localStorage.removeItem("aq_remember_pass"); }
+        onLogin(session);
+      } else { setError("E-mail ou senha incorretos."); }
+      setLoading(false);
+    });
   }
 
   var iconSrc = "/icon.png";
@@ -503,6 +666,14 @@ function LoginPage({ onLogin }){
 
 function UserManagementModal({ onClose, currentUser }){
   const [users, setUsersState] = useState(getUsers);
+  (0, useEffect)(function(){
+    DB.getUsers().then(function(dbUsers){
+      if(dbUsers && dbUsers.length > 0){
+        saveUsers(dbUsers); // sync local
+        setUsersState(dbUsers);
+      }
+    }).catch(function(){});
+  }, []);
   const [tab, setTab] = useState("list");
   const [form, setForm] = useState({ name:"", email:"", role:"manejo", password:"" });
   const [editId, setEditId] = useState(null);
@@ -514,11 +685,15 @@ function UserManagementModal({ onClose, currentUser }){
     if(!form.name||!form.email||(!editId&&!form.password)) return setMsg("Preencha todos os campos.");
     const all = getUsers();
     if(editId){
-      const updated = all.map(u=> u.id===editId ? {...u, name:form.name, email:form.email, role:form.role, ...(form.password?{password:form.password}:{})} : u);
+      const updUser = {...all.find(u=>u.id===editId), name:form.name, email:form.email, role:form.role, ...(form.password?{password:form.password}:{})};
+      const updated = all.map(u=> u.id===editId ? updUser : u);
       saveUsers(updated);
+      DB.saveUser(updUser); // sync to Supabase
     } else {
       if(all.find(u=>u.email.toLowerCase()===form.email.toLowerCase())) return setMsg("E-mail já cadastrado.");
-      saveUsers([...all, { id:"u"+Date.now(), ...form }]);
+      const newUser = { id:"u"+Date.now(), ...form };
+      saveUsers([...all, newUser]);
+      DB.saveUser(newUser); // sync to Supabase
     }
     setMsg(editId?"✅ Usuário atualizado!":"✅ Usuário criado!");
     setForm({name:"",email:"",role:"manejo",password:""});
@@ -531,6 +706,7 @@ function UserManagementModal({ onClose, currentUser }){
     if(id==="admin001") return setMsg("Não é possível remover o administrador.");
     if(!confirm("Remover este usuário?")) return;
     saveUsers(getUsers().filter(u=>u.id!==id));
+    DB.deleteUser(id); // sync to Supabase
     refresh();
   }
 
@@ -632,13 +808,13 @@ function App() {
     const [session,  setSession]      = (0, useState)(()=>getSession());
     const [showUserMgmt, setShowUserMgmt] = (0, useState)(false);
     // NOTE: ALL hooks must be called before any conditional return (React rules)
-    const [tanks, setTanks] = (0, useState)(() => load("aq_tanks", []));
-    const [logs, setLogs] = (0, useState)(() => load("aq_logs", {}));
-    const [expenses, setExpenses] = (0, useState)(() => load("aq_exp", {}));
+    const [tanks, setTanks] = (0, useState)([]);
+    const [logs, setLogs] = (0, useState)({});
+    const [expenses, setExpenses] = (0, useState)({});
     const [stock, setStock] = (0, useState)(() => load("aq_stock", { bags: 0, costPerBag: 100, history: [], minAlert: 20 }));
     const [cycles, setCycles] = (0, useState)(() => load("aq_cycles", {}));
-    const [capex, setCapex] = (0, useState)(() => load("aq_capex", []));
-    const [opexG, setOpexG] = (0, useState)(() => load("aq_opex_g", []));
+    const [capex, setCapex] = (0, useState)([]);
+    const [opexG, setOpexG] = (0, useState)([]);
     const [schedule, setSchedule] = (0, useState)(() => load("aq_sched", []));
     const [units, setUnits] = (0, useState)(() => load("aq_units", { area: "m2", depth: "m", weight: "g", feed: "sack", length: "cm" }));
     // Water reading times: 3 fixed slots, user can change in Settings
@@ -653,7 +829,32 @@ function App() {
     const [showStockIn, setShowStockIn] = (0, useState)(false);
     const [activeDate, setActiveDate] = (0, useState)(today());
     const [notifPerm, setNotifPerm] = (0, useState)("default");
-    (0, useEffect)(() => { save("aq_tanks", tanks); }, [tanks]);
+    
+  // ── Load data from Supabase on mount ────────────────────────────────────
+  (0, useEffect)(function(){
+    async function loadFromDB() {
+      try {
+        // Run migration first (moves localStorage data to Supabase)
+        await migrateLocalToSupabase();
+        // Load all data from Supabase
+        var [dbTanks, dbLogs, dbExp, dbStock, dbCapex, dbOpex] = await Promise.all([
+          DB.getTanks(), DB.getLogs(), DB.getExpenses(),
+          DB.getStock(), DB.getCapex(), DB.getOpex()
+        ]);
+        if (dbTanks && dbTanks.length > 0) setTanks(dbTanks);
+        if (dbLogs  && Object.keys(dbLogs).length > 0)  setLogs(dbLogs);
+        if (dbExp   && Object.keys(dbExp).length  > 0)  setExpenses(dbExp);
+        if (dbStock && dbStock.bags !== undefined) setStock(dbStock);
+        if (dbCapex && dbCapex.length > 0) setCapex(dbCapex);
+        if (dbOpex  && dbOpex.length  > 0) setOpexG(dbOpex);
+      } catch(e) {
+        console.warn("Load from DB failed, using local:", e);
+      }
+    }
+    loadFromDB();
+  }, []);
+
+(0, useEffect)(() => { save("aq_tanks", tanks); }, [tanks]);
     (0, useEffect)(() => { save("aq_logs", logs); }, [logs]);
     (0, useEffect)(() => { save("aq_exp", expenses); }, [expenses]);
     (0, useEffect)(() => { save("aq_stock", stock); }, [stock]);
@@ -685,9 +886,9 @@ function App() {
     const activeTank = tanks.find(t => t.id === tankId);
     function openTank(id) { setTankId(id); setPage("tank"); }
     function goHome() { setPage("dashboard"); setTankId(null); }
-    function addTank(t) { setTanks(p => [...p, t]); }
-    function updateTank(t) { setTanks(p => p.map(x => x.id === t.id ? t : x)); }
-    function deleteTank(id) { setTanks(p => p.filter(x => x.id !== id)); }
+    function addTank(t) { DB.saveTank(t); setTanks(p => [...p, t]); }
+    function updateTank(t) { DB.saveTank(t); setTanks(p => p.map(x => x.id === t.id ? t : x)); }
+    function deleteTank(id) { DB.deleteTank(id); setTanks(p => p.filter(x => x.id !== id)); }
     function updateDayLog(tankId, date, fields) {
         setLogs(prev => {
             var _a;
@@ -2597,8 +2798,24 @@ function StockInModal({ onClose }) {
             if (!result.ok)
                 throw new Error(result.error || "Servidor retornou erro");
             const extracted = result.data || {};
-            setParsed({ ...extracted, method: isImg ? "vision-img" : "vision-pdf" });
-            setForm(p => ({ ...p, ...extracted }));
+            if (extracted.isMultiple && Array.isArray(extracted.items) && extracted.items.length > 0) {
+              // Multiple items in NF — use first item as form default, store all items
+              const firstItem = extracted.items[0];
+              setParsed({ ...firstItem, _allItems: extracted.items, method: isImg ? "vision-img" : "vision-pdf" });
+              setForm(p => ({
+                ...p, ...firstItem,
+                _allItems: extracted.items,
+                _itemIndex: 0,
+                bags: extracted.items.reduce(function(s,i){ return s + (parseInt(i.bags)||0); }, 0),
+                totalValue: extracted.items.reduce(function(s,i){ return s + (parseFloat(i.totalValue)||0); }, 0).toFixed(2),
+                supplier: firstItem.supplier,
+                feedType: extracted.items.map(function(i){ return (i.bags||0)+"x "+i.feedType; }).join(" | "),
+                obs: firstItem.obs || ""
+              }));
+            } else {
+              setParsed({ ...extracted, method: isImg ? "vision-img" : "vision-pdf" });
+              setForm(p => ({ ...p, ...extracted }));
+            }
             setTab("manual");
         }
         catch (err) {
@@ -2777,6 +2994,16 @@ function StockInModal({ onClose }) {
                             React.createElement("div", { style: { fontSize: 11, fontWeight: 400, color: "var(--muted)", marginTop: 2 } }, parsed.method === "vision-img" ? "📷 Lido de foto/imagem" :
                                 parsed.method === "vision-pdf" ? "🤖 PDF lido por visão IA" :
                                     parsed.method === "text" ? "📄 Texto digital extraído" : ""))),
+                    parsed._allItems && React.createElement("div", {
+                      style:{margin:"10px 0",padding:"10px 12px",background:"rgba(14,165,233,0.08)",borderRadius:9,border:"1px solid rgba(14,165,233,0.2)"}
+                    },
+                      React.createElement("div", {style:{fontSize:12,fontWeight:700,color:"#0ea5e9",marginBottom:6}},
+                        "📦 "+parsed._allItems.length+" tipos de ração detectados — totais somados:"),
+                      parsed._allItems.map(function(item,i){
+                        return React.createElement("div",{key:i,style:{fontSize:11,color:"var(--muted)",marginBottom:2}},
+                          "• "+(item.bags||0)+" sacos · "+item.feedType+" · "+item.proteinPct+" · R$ "+(parseFloat(item.totalValue)||0).toFixed(2));
+                      })
+                    ),
                     parsed._error && (React.createElement("div", { style: { background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 8, padding: "10px 13px", marginBottom: 12, fontSize: 12, color: "#f87171" } },
                         "\u26A0\uFE0F N\u00E3o foi poss\u00EDvel extrair o texto do PDF (",
                         parsed._error,
