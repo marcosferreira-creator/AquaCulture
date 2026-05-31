@@ -1600,6 +1600,20 @@ function TankPage({ onEdit }) {
                 { ico: "💧", val: `${o2 || "—"}`, lbl: "O₂ mg/L", warn: o2 > 0 && o2 < ((sp === null || sp === void 0 ? void 0 : sp.minO2) || 5) },
                 { ico: "📐", val: `${tank.areaM2}m²`, lbl: "Área" },
                 { ico: "🌊", val: `${tank.depth || 1.5}m`, lbl: "Profund.", warn: tank.depth && tank.depth < (((_a = SP[tank.species]) === null || _a === void 0 ? void 0 : _a.minDepthM) || 1.2) },
+            ...(tank.targetWeightKg > 0 ? [{
+                ico: "\uD83C\uDFAF",
+                lbl: "Alvo Despesca",
+                val: tank.targetWeightKg + " kg/peixe",
+                color: "#a855f7"
+            }, {
+                ico: "\uD83D\uDC1F",
+                lbl: "Peixes p/ Despesca",
+                val: (function(){
+                    var sp3 = SP[tank.species] || SP.matrinxa;
+                    return Math.floor((sp3.densityPerM2 * (tank.areaM2||0)) / tank.targetWeightKg).toLocaleString("pt-BR");
+                })(),
+                color: "#a855f7"
+            }] : []),
             ].map(k => (React.createElement("div", { key: k.lbl, className: "kpi-chip", style: { borderColor: k.warn ? "rgba(239,68,68,0.4)" : "var(--border)" } },
                 k.ico === "__LOGO__" ? React.createElement("img", { src: "/icon.png", style: { width: 22, height: 22, objectFit: "cover", borderRadius: 4, display: "inline-block" } }) : React.createElement("div", { style: { fontSize: 16 } }, k.ico),
                 React.createElement("div", { className: "val", style: { fontSize: 14, color: k.warn ? "var(--red)" : "var(--text)" } }, k.val),
@@ -2579,6 +2593,7 @@ function TankModal({ mode, tank, onClose }) {
         weightDisp: def.avgWeightG ? fromBase(def.avgWeightG, "weight", wUnit).toFixed(1) : "50",
         fishCount: def.fishCount || "",
         pricePerKg: def.pricePerKg || 21,
+        targetWeightKg: def.targetWeightKg || "",
     });
     const sp = SP[form.species];
     // Convert display → base for calcs
@@ -2617,6 +2632,7 @@ function TankModal({ mode, tank, onClose }) {
             fishCount: parseInt(form.fishCount) || idealFish || 0,
             avgWeightG: weightBase || 50,
             pricePerKg: parseFloat(form.pricePerKg) || 21,
+            targetWeightKg: parseFloat(form.targetWeightKg) || 0,
             createdAt: (tank === null || tank === void 0 ? void 0 : tank.createdAt) || today(),
         };
         mode === "new" ? addTank(data) : updateTank(data);
@@ -2704,6 +2720,44 @@ function TankModal({ mode, tank, onClose }) {
                 React.createElement("div", null,
                     React.createElement("lbl", null, "Pre\u00E7o de Venda Esperado (R$/kg)"),
                     React.createElement("input", { className: "inp", type: "number", step: "0.5", value: form.pricePerKg, onChange: e => setForm(p => ({ ...p, pricePerKg: e.target.value })) })),
+                React.createElement("div", { style:{marginTop:4,padding:"14px 16px",background:"rgba(168,85,247,0.06)",border:"1px solid rgba(168,85,247,0.2)",borderRadius:12} },
+                    React.createElement("div", { style:{fontSize:13,fontWeight:700,color:"#a855f7",marginBottom:12} }, "\uD83C\uDFAF Expectativa de Despesca"),
+                    React.createElement("div", null,
+                        React.createElement("lbl", null, "Peso Alvo por Peixe na Despesca (kg)"),
+                        React.createElement("input", { className: "inp", type: "number", step: "0.1", min: "0.1",
+                            placeholder: SP[form.species]?.name === "Tambaqui" ? "ex: 3.5" : "ex: 1.5",
+                            value: form.targetWeightKg,
+                            onChange: e => setForm(p => ({ ...p, targetWeightKg: e.target.value })) })
+                    ),
+                    form.targetWeightKg && parseFloat(form.targetWeightKg) > 0 && (function(){
+                        var sp2 = SP[form.species] || SP.matrinxa;
+                        var areaM2 = parseFloat(form.areaDisp) || 0;
+                        var targetKg = parseFloat(form.targetWeightKg) || 0;
+                        var maxByDensity = areaM2 > 0 ? Math.floor((sp2.densityPerM2 * areaM2) / targetKg) : 0;
+                        var biomassaTotal = maxByDensity * targetKg;
+                        var receitaEst = biomassaTotal * (parseFloat(form.pricePerKg) || 21);
+                        return React.createElement("div", { style:{marginTop:12,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10} },
+                            React.createElement("div", { style:{background:"rgba(168,85,247,0.1)",borderRadius:9,padding:"10px 12px",textAlign:"center"} },
+                                React.createElement("div", { style:{fontFamily:"var(--mono)",fontSize:18,fontWeight:800,color:"#a855f7"} },
+                                    maxByDensity.toLocaleString("pt-BR")),
+                                React.createElement("div", { style:{fontSize:10,color:"var(--muted)",textTransform:"uppercase",fontWeight:600,marginTop:2} },
+                                    "Peixes p/ despesca")
+                            ),
+                            React.createElement("div", { style:{background:"rgba(168,85,247,0.1)",borderRadius:9,padding:"10px 12px",textAlign:"center"} },
+                                React.createElement("div", { style:{fontFamily:"var(--mono)",fontSize:18,fontWeight:800,color:"#a855f7"} },
+                                    biomassaTotal.toFixed(0)+" kg"),
+                                React.createElement("div", { style:{fontSize:10,color:"var(--muted)",textTransform:"uppercase",fontWeight:600,marginTop:2} },
+                                    "Biomassa despesca")
+                            ),
+                            React.createElement("div", { style:{background:"rgba(34,197,94,0.08)",borderRadius:9,padding:"10px 12px",textAlign:"center",gridColumn:"span 2"} },
+                                React.createElement("div", { style:{fontFamily:"var(--mono)",fontSize:16,fontWeight:800,color:"var(--green)"} },
+                                    "R$ "+receitaEst.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})),
+                                React.createElement("div", { style:{fontSize:10,color:"var(--muted)",textTransform:"uppercase",fontWeight:600,marginTop:2} },
+                                    "Receita estimada na despesca")
+                            )
+                        );
+                    })()
+                ),
                 React.createElement("button", { className: "btn btn-p", style: { padding: 13, fontSize: 14 }, onClick: handleSubmit }, mode === "new" ? "✅ Criar Tanque" : "✅ Salvar Alterações")))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
