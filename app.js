@@ -1,4 +1,4 @@
-    const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
+const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
     const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } = Recharts;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1105,7 +1105,7 @@ function FeedTablePanel() {
                 { l: "Profundidade ideal", v: `${species.idealDepthM} m` },
             ].map(i => (React.createElement("div", { key: i.l, style: { background: "rgba(255,255,255,0.025)", borderRadius: 9, padding: "11px 13px" } },
                 React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", fontWeight: 600, marginBottom: 4 } }, i.l),
-                React.createElement("div", { style: { fontFamily: "var(--mono)", fontSize: 15, fontWeight: 700, color: species.color } }, i.v)))))));
+                React.createElement("div", { style: { fontFamily: "var(--mono)", fontSize: 15, fontWeight: 700, color: species.color } }, i.v))))))));
 }
 
 function StockPanel() {
@@ -2157,4 +2157,3 @@ function RelatoriosModal({ onClose }) {
 // RENDER
 // ═══════════════════════════════════════════════════════════════════════════════
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-
