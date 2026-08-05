@@ -385,7 +385,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .mob-section{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:4px 18px;}
 
 /* ── BOTTOM TAB BAR ── */
-.bottom-bar{position:fixed!important;bottom:0!important;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:999;padding-bottom:env(safe-area-inset-bottom,0px);transform:translateZ(0);-webkit-transform:translateZ(0);}
+.bottom-bar{position:fixed!important;bottom:0!important;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:999;padding-bottom:env(safe-area-inset-bottom,0px);transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0);will-change:transform;}
 .pwa-top-fix{padding-top:env(safe-area-inset-top,0px)!important;height:calc(52px + env(safe-area-inset-top,0px))!important;}
 @supports(padding-top:env(safe-area-inset-top)){nav{padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top));}}
 .bottom-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;gap:4px;transition:color .15s;}
@@ -1959,7 +1959,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                 )),
             React.createElement("div", { style: { display: "flex", gap: 10, overflowX: "auto", paddingBottom: 6, scrollbarWidth: "none", WebkitOverflowScrolling: "touch" } }, readings.map((r, i) => {
                 const st = o2Status(r.o2);
-                return (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 12, border: `1px solid ${r.o2 ? st.color + "44" : "var(--border)"}`, flex: "0 0 160px", minWidth: 160 } },
+                return (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 12, border: "1px solid " + (r.o2 ? st.color + "44" : "var(--border)"), flexGrow: 0, flexShrink: 0, flexBasis: 160, minWidth: 160 } },
                     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
                         React.createElement("span", { style: { fontSize: 12, fontWeight: 700 } }, getSlotLabel(r.time)),
                         React.createElement("div", { style: { display:"flex", alignItems:"center", gap:6 } },
@@ -4053,3 +4053,6 @@ function RelatoriosModal({ onClose }) {
                             tanks.length === 0 && React.createElement("tr", null,
                                 React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhum tanque"))))))))));
 }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
