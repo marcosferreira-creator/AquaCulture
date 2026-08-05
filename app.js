@@ -743,7 +743,7 @@ function UserManagementModal({ onClose, currentUser }){
   }
 
   return (
-    React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(12px)",zIndex:300,display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top, 0px)"} },
+    React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(12px)",zIndex:300,display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top, 0px)",...useSwipeToClose(onClose)} },
       // Header
       React.createElement("div", { style:{paddingTop:"max(env(safe-area-inset-top, 14px), 14px)",paddingBottom:"14px",paddingLeft:"18px",paddingRight:"18px",borderBottom:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:12,background:"#060e1a"} },
         React.createElement("span", { style:{fontSize:22} }, "👥"),
@@ -2707,6 +2707,29 @@ function useLockBodyScroll() {
   }, []);
 }
 
+
+// ── Swipe to close modal (deslizar da borda esquerda para fechar) ─────────────
+function useSwipeToClose(onClose) {
+  var startX = React.useRef(0);
+  var startY = React.useRef(0);
+
+  function onTouchStart(e) {
+    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
+  }
+
+  function onTouchEnd(e) {
+    var dx = e.changedTouches[0].clientX - startX.current;
+    var dy = Math.abs(e.changedTouches[0].clientY - startY.current);
+    // Swipe right (dx > 80px) and mostly horizontal (dy < 60px)
+    if (dx > 80 && dy < 60) {
+      onClose();
+    }
+  }
+
+  return { onTouchStart: onTouchStart, onTouchEnd: onTouchEnd };
+}
+
 function TankModal({ mode, tank, onClose }) {
 
   useLockBodyScroll();
@@ -2775,7 +2798,7 @@ function TankModal({ mode, tank, onClose }) {
     const aLabel = ((_a = UNITS_DEF.area[aUnit]) === null || _a === void 0 ? void 0 : _a.label) || "m²";
     const dLabel = ((_b = UNITS_DEF.depth[dUnit]) === null || _b === void 0 ? void 0 : _b.label) || "m";
     const wLabel = ((_c = UNITS_DEF.weight[wUnit]) === null || _c === void 0 ? void 0 : _c.label) || "g";
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "auto" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "auto", ...useSwipeToClose(onClose) } },
         React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 500, padding: 22, maxHeight: "90vh", overflowY: "auto", margin: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, mode === "new" ? "Novo Tanque" : "Editar Tanque"),
@@ -3134,7 +3157,7 @@ function StockInModal({ onClose }) {
         setConfirmed(true);
     }
     if (confirmed)
-        return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
+        return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", ...useSwipeToClose(onClose) } },
             React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 420, padding: 32, textAlign: "center", marginTop: 8 } },
                 React.createElement("div", { style: { fontSize: 52, marginBottom: 16 } }, "\u2705"),
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 20, marginBottom: 8 } }, "Estoque Atualizado!"),
@@ -3153,7 +3176,7 @@ function StockInModal({ onClose }) {
                     " \u00B7 ",
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", overflowY: "auto" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", ...useSwipeToClose(onClose), overflowY: "auto", ...useSwipeToClose(onClose) } },
         React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "90vh", overflowY: "auto", margin: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("div", null,
@@ -3333,7 +3356,7 @@ function SettingsModal({ onClose }) {
 
   useLockBodyScroll();
     const { units, setUnits, notifPerm, requestNotif, waterTimes, setWaterTimes } = useApp();
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", ...useSwipeToClose(onClose) } },
         React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 480, padding: 26, maxHeight: "88vh", overflowY: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 } },
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\u2699\uFE0F Configura\u00E7\u00F5es"),
@@ -3443,7 +3466,7 @@ function FinanceiroModal({ onClose }) {
     }
     const capexByCat = groupBy(capex, "cat");
     const opexByCat = groupBy(opexG, "cat");
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)", ...useSwipeToClose(onClose) } },
         React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12, background: "var(--dark)" } },
             React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCB0"),
             React.createElement("div", null,
@@ -3878,7 +3901,7 @@ function RelatoriosModal({ onClose }) {
         downloadCSV(rows, `operacao_completa_${today()}.csv`);
         setExporting("");
     }
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)", ...useSwipeToClose(onClose) } },
         React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12, background: "var(--dark)" } },
             React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCCB"),
             React.createElement("div", null,
