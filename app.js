@@ -2725,29 +2725,31 @@ function useLockBodyScroll() {
 
 
 
-// ── Swipe right to close: toque na borda esquerda e arraste para direita ─────
+// ── Swipe right to close: detecta no documento inteiro ──────────────────────
 function useSwipeToClose(onClose) {
   var ref = React.useRef(null);
   (0, useEffect)(function() {
-    var el = ref.current;
-    if (!el) return;
-    var startX = 0, startY = 0;
+    var startX = 0, startY = 0, active = false;
     function onStart(e) {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
+      // Only trigger if swipe starts from left 40% of screen
+      active = startX < window.innerWidth * 0.5;
     }
     function onEnd(e) {
+      if (!active) return;
       var dx = e.changedTouches[0].clientX - startX;
       var dy = Math.abs(e.changedTouches[0].clientY - startY);
-      if (dx > 60 && dy < 100) onClose();
+      if (dx > 60 && dy < 120) onClose();
+      active = false;
     }
-    el.addEventListener("touchstart", onStart, { passive: true });
-    el.addEventListener("touchend", onEnd, { passive: true });
+    document.addEventListener("touchstart", onStart, { passive: true });
+    document.addEventListener("touchend", onEnd, { passive: true });
     return function() {
-      el.removeEventListener("touchstart", onStart);
-      el.removeEventListener("touchend", onEnd);
+      document.removeEventListener("touchstart", onStart);
+      document.removeEventListener("touchend", onEnd);
     };
-  }, []);
+  }, [onClose]);
   return ref;
 }
 
