@@ -1957,9 +1957,9 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                     style:{background:"rgba(14,165,233,0.1)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:6,padding:"4px 10px",cursor:"pointer",color:"var(--accent)",fontSize:12,fontFamily:"var(--font)",fontWeight:600}
                   }, "+ Adicionar leitura")
                 )),
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: readings.length === 1 ? "1fr" : readings.length === 2 ? "1fr 1fr" : "1fr 1fr 1fr", gap: 10 } }, readings.map((r, i) => {
+            React.createElement("div", { style: { display: "flex", gap: 10, overflowX: "auto", paddingBottom: 6, scrollbarWidth: "none", WebkitOverflowScrolling: "touch" } }, readings.map((r, i) => {
                 const st = o2Status(r.o2);
-                return (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 12, border: `1px solid ${r.o2 ? st.color + "44" : "var(--border)"}` } },
+                return (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 12, border: `1px solid ${r.o2 ? st.color + "44" : "var(--border)"}`, flex: "0 0 160px", minWidth: 160 } },
                     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
                         React.createElement("span", { style: { fontSize: 12, fontWeight: 700 } }, getSlotLabel(r.time)),
                         React.createElement("div", { style: { display:"flex", alignItems:"center", gap:6 } },
@@ -4053,6 +4053,3 @@ function RelatoriosModal({ onClose }) {
                             tanks.length === 0 && React.createElement("tr", null,
                                 React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhum tanque"))))))))));
 }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-  
