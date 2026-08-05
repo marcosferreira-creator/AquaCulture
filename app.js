@@ -55,7 +55,8 @@ var DB = {
   // Tanks
   async getTanks() {
     var rows = await sbRequest("GET","ac_tanks","","select=*");
-    if (!rows || !rows.length) return [];
+    if (rows === null) return null; // null = network error, distinct from empty array
+    if (!rows.length) return [];
     return rows.map(function(r){ return r.data; });
   },
   async saveTank(tank) {
@@ -69,7 +70,8 @@ var DB = {
   // Logs
   async getLogs() {
     var rows = await sbRequest("GET","ac_logs","","select=*");
-    if (!rows || !rows.length) return {};
+    if (rows === null) return null; // null = network error
+    if (!rows.length) return {};
     var result = {};
     rows.forEach(function(r) {
       if (!result[r.tank_id]) result[r.tank_id] = {};
@@ -83,7 +85,8 @@ var DB = {
   // Expenses
   async getExpenses() {
     var rows = await sbRequest("GET","ac_expenses","","select=*");
-    if (!rows || !rows.length) return {};
+    if (rows === null) return null; // null = network error
+    if (!rows.length) return {};
     var result = {};
     rows.forEach(function(r) { result[r.tank_id] = r.data; });
     return result;
@@ -102,6 +105,7 @@ var DB = {
   // CAPEX
   async getCapex() {
     var rows = await sbRequest("GET","ac_capex","","id=eq.1&select=data");
+    if (rows === null) return null; // null = network error
     return rows && rows[0] ? rows[0].data : [];
   },
   async saveCapex(data) {
@@ -110,6 +114,7 @@ var DB = {
   // OPEX
   async getOpex() {
     var rows = await sbRequest("GET","ac_opex","","id=eq.1&select=data");
+    if (rows === null) return null; // null = network error
     return rows && rows[0] ? rows[0].data : [];
   },
   async saveOpex(data) {
@@ -827,7 +832,7 @@ function App() {
     const [session,  setSession]      = (0, useState)(()=>getSession());
     const [showUserMgmt, setShowUserMgmt] = (0, useState)(false);
     // NOTE: ALL hooks must be called before any conditional return (React rules)
-    const [tanks, setTanks] = (0, useState)([]);
+    const [tanks, setTanks] = (0, useState)(function(){ return load("aq_tanks", []); });
     const [logs, setLogs] = (0, useState)({});
     const [expenses, setExpenses] = (0, useState)({});
     const [stock, setStock] = (0, useState)(() => load("aq_stock", { bags: 0, costPerBag: 100, history: [], minAlert: 20 }));
@@ -862,14 +867,13 @@ function App() {
           DB.getTanks(), DB.getLogs(), DB.getExpenses(),
           DB.getStock(), DB.getCapex(), DB.getOpex()
         ]);
-        // SAFE update: only replace state if Supabase returned real data
-        // Never wipe existing data with empty results (protects against network errors)
+        // SAFE update: null = network error (keep existing), [] = empty (keep existing), [data] = update
         if (dbTanks && dbTanks.length > 0) setTanks(dbTanks);
-        if (dbLogs  && Object.keys(dbLogs).length > 0) setLogs(dbLogs);
-        if (dbExp   && Object.keys(dbExp).length  > 0) setExpenses(dbExp);
+        if (dbLogs  && dbLogs !== null && Object.keys(dbLogs).length > 0) setLogs(dbLogs);
+        if (dbExp   && dbExp  !== null && Object.keys(dbExp).length  > 0) setExpenses(dbExp);
         if (dbStock && dbStock.bags !== undefined) setStock(dbStock);
-        if (dbCapex && dbCapex.length > 0) setCapex(dbCapex);
-        if (dbOpex  && dbOpex.length  > 0) setOpexG(dbOpex);
+        if (dbCapex && dbCapex !== null && dbCapex.length > 0) setCapex(dbCapex);
+        if (dbOpex  && dbOpex  !== null && dbOpex.length  > 0) setOpexG(dbOpex);
         setLastSync(new Date());
       } catch(e) {
         console.warn("Load from DB failed, using local:", e);
@@ -928,9 +932,39 @@ function App() {
     const activeTank = tanks.find(t => t.id === tankId);
     function openTank(id) { setTankId(id); setPage("tank"); }
     function goHome() { setPage("dashboard"); setTankId(null); }
-    function addTank(t) { DB.saveTank(t); setTanks(p => [...p, t]); }
-    function updateTank(t) { DB.saveTank(t); setTanks(p => p.map(x => x.id === t.id ? t : x)); }
-    function deleteTank(id) { DB.deleteTank(id); setTanks(p => p.filter(x => x.id !== id)); }
+    function addTank(t) {
+    // Save to localStorage immediately
+    setTanks(function(p) {
+      var next = [...p, t];
+      save("aq_tanks", next);
+      return next;
+    });
+    // Save to Supabase (async, non-blocking)
+    DB.saveTank(t).then(function(r) {
+      if (!r) {
+        // Retry once after 2 seconds if first attempt failed
+        setTimeout(function(){ DB.saveTank(t); }, 2000);
+      }
+    });
+  }
+    function updateTank(t) {
+    setTanks(function(p) {
+      var next = p.map(function(x){ return x.id === t.id ? t : x; });
+      save("aq_tanks", next);
+      return next;
+    });
+    DB.saveTank(t).then(function(r) {
+      if (!r) { setTimeout(function(){ DB.saveTank(t); }, 2000); }
+    });
+  }
+    function deleteTank(id) {
+    DB.deleteTank(id);
+    setTanks(function(p) {
+      var next = p.filter(function(x){ return x.id !== id; });
+      save("aq_tanks", next);
+      return next;
+    });
+  }
     function updateDayLog(tankId, date, fields) {
         setLogs(prev => {
             var _a;
