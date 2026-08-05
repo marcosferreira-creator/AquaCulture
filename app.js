@@ -1,5 +1,4 @@
-
-    const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
+const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
     const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } = Recharts;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -845,7 +844,7 @@ function App() {
     const [schedule, setSchedule] = (0, useState)(() => load("aq_sched", []));
     const [units, setUnits] = (0, useState)(() => load("aq_units", { area: "m2", depth: "m", weight: "g", feed: "sack", length: "cm" }));
     // Water reading times: 3 fixed slots, user can change in Settings
-    const [waterTimes, setWaterTimes] = (0, useState)(() => load("aq_water_times", ["07:00", "15:00"]));
+    const [waterTimes, setWaterTimes] = (0, useState)(() => load("aq_water_times", ["", ""]));
     const [page, setPage] = (0, useState)("dashboard");
     const [tankId, setTankId] = (0, useState)(null);
     const [showNewTank, setShowNewTank] = (0, useState)(false);
@@ -1727,12 +1726,24 @@ function TankPage({ onEdit }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // DAILY TAB — 3 leituras diárias de qualidade de água
 // ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Smart slot label based on hour ──────────────────────────────────────────
+function getSlotLabel(timeStr) {
+  if (!timeStr) return "Leitura";
+  var h = parseInt(timeStr.split(":")[0]);
+  if (isNaN(h)) return "Leitura";
+  if (h >= 5  && h < 12) return "🌅 Manhã";
+  if (h >= 12 && h < 17) return "☀️ Tarde";
+  if (h >= 17 && h < 20) return "🌇 Final da Tarde";
+  return "🌙 Noite";
+}
+
 function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
     var _a;
     const { updateDayLog, logs, activeDate, setActiveDate, consumeStock, stock, waterTimes, goHome } = useApp();
     const dl = ((_a = logs[tank.id]) === null || _a === void 0 ? void 0 : _a[activeDate]) || {};
     // readings[0]=manhã, [1]=tarde, [2]=noite
-    const emptyReadings = waterTimes.map(t => ({ time: t, o2: "", temp: "", ph: "" }));
+    const emptyReadings = [{ time: "", o2: "", temp: "", ph: "" }, { time: "", o2: "", temp: "", ph: "" }];
     const [readings, setReadings] = (0, useState)(() => {
         var _a;
         if ((_a = dl.readings) === null || _a === void 0 ? void 0 : _a.length)
@@ -1881,7 +1892,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
             return { color: "var(--green)", label: "✅ Ótimo" };
         return { color: "var(--green)", label: "✅ Ok" };
     }
-    var slotLabels = ["🌅 Manhã", "🌇 Final da Tarde", "🌙 Noite", "⭐ Extra"];
+    // slotLabels removed — now dynamic via getSlotLabel()
     return (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
         React.createElement("div", { className: "card", style: { padding: 16 } },
             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" } },
@@ -1937,9 +1948,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                     " mg/L"),
                   React.createElement("button", {
                     onClick: function() {
-                      var slots = ["07:00","12:00","15:00","18:00","20:00"];
-                      var nextTime = slots[readings.length] || "08:00";
-                      if (readings.length < 4) setReadings(function(p){ return [...p, {time:nextTime,o2:"",temp:"",ph:""}]; });
+                      if (readings.length < 4) setReadings(function(p){ return [...p, {time:"",o2:"",temp:"",ph:""}]; });
                     },
                     style:{background:"rgba(14,165,233,0.1)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:6,padding:"4px 10px",cursor:"pointer",color:"var(--accent)",fontSize:12,fontFamily:"var(--font)",fontWeight:600}
                   }, "+ Adicionar leitura")
@@ -1948,7 +1957,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                 const st = o2Status(r.o2);
                 return (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 12, border: `1px solid ${r.o2 ? st.color + "44" : "var(--border)"}` } },
                     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
-                        React.createElement("span", { style: { fontSize: 12, fontWeight: 700 } }, slotLabels[i]),
+                        React.createElement("span", { style: { fontSize: 12, fontWeight: 700 } }, getSlotLabel(r.time)),
                         React.createElement("div", { style: { display:"flex", alignItems:"center", gap:6 } },
                           React.createElement("span", { style: { fontSize: 10, color: st.color, fontWeight: 600 } }, r.o2 ? st.label : ""),
                           readings.length > 1 && React.createElement("button", {
@@ -3409,7 +3418,7 @@ function SettingsModal({ onClose }) {
                 React.createElement("div", { style: { background: "rgba(255,255,255,0.025)", borderRadius: 10, padding: "14px 16px" } },
                     React.createElement("div", { style: { fontSize: 13, fontWeight: 600, marginBottom: 4 } }, "\uD83D\uDCA7 Leituras di\u00E1rias de O\u2082 e temperatura"),
                     React.createElement("div", { style: { fontSize: 12, color: "var(--muted)", marginBottom: 12 } }, "Defina os hor\u00E1rios fixos. S\u00E3o aplicados em todos os tanques."),
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 } }, ["🌅 Manhã", "🌇 Final da Tarde", "🌙 Noite", "⭐ Extra"].slice(0, waterTimes.length).map(function(label, i) { return React.createElement("div", { key: i, style:{position:"relative"} },
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 } }, waterTimes.map(function(t, i) { var label = getSlotLabel(t) || ("Leitura " + (i+1)); return React.createElement("div", { key: i, style:{position:"relative"} },
                         React.createElement("div", { style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4} },
                           React.createElement("lbl", { style:{margin:0} }, label),
                           waterTimes.length > 1 && React.createElement("button", {
@@ -4034,3 +4043,4 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
