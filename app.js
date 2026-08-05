@@ -368,7 +368,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .mono{font-family:var(--mono);}
 
 /* ── MOBILE NAV ── */
-.mob-menu{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,14,26,0.97);z-index:200;display:flex;flex-direction:column;padding:70px 20px 30px;gap:6px;overflow-y:auto;}
+.mob-menu{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,14,26,0.97);z-index:200;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top, 0px) + 64px) 20px calc(env(safe-area-inset-bottom, 0px) + 30px);gap:6px;overflow-y:auto;}
 .mob-item{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);cursor:pointer;font-size:15px;font-weight:600;color:var(--text);transition:background .15s;}
 .mob-item:active{background:rgba(14,165,233,0.15);}
 .mob-item.active{background:rgba(14,165,233,0.12);border-color:rgba(14,165,233,0.3);color:var(--accent);}
@@ -376,8 +376,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .mob-section{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:4px 18px;}
 
 /* ── BOTTOM TAB BAR ── */
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:150;padding-bottom:env(safe-area-inset-bottom);}
-.pwa-top-fix{padding-top:env(safe-area-inset-top)!important;height:calc(52px + env(safe-area-inset-top, 20px))!important;}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:150;padding-bottom:env(safe-area-inset-bottom,0px);}
+.pwa-top-fix{padding-top:env(safe-area-inset-top,0px)!important;height:calc(52px + env(safe-area-inset-top,0px))!important;}
 @supports(padding-top:env(safe-area-inset-top)){nav{padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top));}}
 .bottom-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;gap:4px;transition:color .15s;}
 .bottom-tab .ico{font-size:20px;line-height:1;}
@@ -397,16 +397,21 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .kpi-chip .lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
 
 /* ── PAGE PADDING FOR BOTTOM BAR ── */
-.page-content{padding-bottom:90px;padding-top:8px;}
+.page-content{padding-bottom:calc(90px + env(safe-area-inset-bottom, 0px));padding-top:8px;}
 
 /* ── FULL WIDTH GRID ON MOBILE ── */
 @media(max-width:600px){
   .grid2,.grid3,.grid4{grid-template-columns:1fr!important;}
-  .kpi-row .kpi-chip{min-width:90px;}
+  .kpi-row .kpi-chip{min-width:85px;}
+  .kpi-chip .val{font-size:13px;}
+  table{font-size:11px;}
+  th,td{padding:6px 8px;}
 }
 @supports(padding-top:env(safe-area-inset-top)){
-  nav{padding-top:max(env(safe-area-inset-top),12px)!important;}
-  .mob-menu{padding-top:calc(max(env(safe-area-inset-top),12px) + 60px)!important;}
+  nav{padding-top:env(safe-area-inset-top)!important;height:calc(52px + env(safe-area-inset-top))!important;}
+  .mob-menu{padding-top:calc(env(safe-area-inset-top) + 64px)!important;}
+  .bottom-bar{padding-bottom:env(safe-area-inset-bottom)!important;}
+  .page-content{padding-bottom:calc(90px + env(safe-area-inset-bottom))!important;}
 }
 `;
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -589,7 +594,7 @@ function LoginPage({ onLogin }){
 
   return React.createElement("div", {
     style:{minHeight:"100vh",background:"#060e1a",display:"flex",alignItems:"flex-start",
-           justifyContent:"center",padding:"calc(env(safe-area-inset-top) + 40px) 20px 40px",
+           justifyContent:"center",padding:"calc(env(safe-area-inset-top, 0px) + 40px) 20px calc(env(safe-area-inset-bottom, 0px) + 40px)",
            overflowY:"auto",boxSizing:"border-box"}
   },
     React.createElement("div", {style:{width:"100%",maxWidth:380}},
@@ -653,7 +658,7 @@ function LoginPage({ onLogin }){
       )
     ),
     showForgot && React.createElement("div", {
-      style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(10px)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}
+      style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(10px)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:20,paddingTop:"max(env(safe-area-inset-top, 40px), 40px)"}
     },
       React.createElement("div", {
         style:{background:"#0d1829",border:"1px solid rgba(255,255,255,0.12)",borderRadius:16,padding:28,width:"100%",maxWidth:360}
@@ -726,7 +731,7 @@ function UserManagementModal({ onClose, currentUser }){
   }
 
   return (
-    React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(12px)",zIndex:300,display:"flex",flexDirection:"column"} },
+    React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(12px)",zIndex:300,display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top, 0px)"} },
       // Header
       React.createElement("div", { style:{paddingTop:"max(env(safe-area-inset-top, 14px), 14px)",paddingBottom:"14px",paddingLeft:"18px",paddingRight:"18px",borderBottom:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:12,background:"#060e1a"} },
         React.createElement("span", { style:{fontSize:22} }, "👥"),
@@ -846,17 +851,19 @@ function App() {
     async function loadFromDB(isSilent) {
       if (!isSilent) setSyncing(true);
       try {
-        await migrateLocalToSupabase();
+        // Migration only on first load, not on periodic sync
+        if (!isSilent) await migrateLocalToSupabase();
         var [dbTanks, dbLogs, dbExp, dbStock, dbCapex, dbOpex] = await Promise.all([
           DB.getTanks(), DB.getLogs(), DB.getExpenses(),
           DB.getStock(), DB.getCapex(), DB.getOpex()
         ]);
-        if (dbTanks && dbTanks.length > 0) setTanks(dbTanks);
-        if (dbLogs  && Object.keys(dbLogs).length > 0)  setLogs(dbLogs);
-        if (dbExp   && Object.keys(dbExp).length  > 0)  setExpenses(dbExp);
+        // Always update state from Supabase — even if empty (deleted on another device)
+        if (dbTanks !== null) setTanks(dbTanks || []);
+        if (dbLogs  !== null) setLogs(dbLogs || {});
+        if (dbExp   !== null) setExpenses(dbExp || {});
         if (dbStock && dbStock.bags !== undefined) setStock(dbStock);
-        if (dbCapex && dbCapex.length > 0) setCapex(dbCapex);
-        if (dbOpex  && dbOpex.length  > 0) setOpexG(dbOpex);
+        if (dbCapex !== null) setCapex(dbCapex || []);
+        if (dbOpex  !== null) setOpexG(dbOpex || []);
         setLastSync(new Date());
       } catch(e) {
         console.warn("Load from DB failed, using local:", e);
@@ -869,7 +876,7 @@ function App() {
     loadFromDB(false);
 
     // Auto-sync every 30 seconds
-    var interval = setInterval(function(){ loadFromDB(true); }, 30000);
+    var interval = setInterval(function(){ loadFromDB(true); }, 15000);
 
     // Sync when user returns to the app (tab/app focus)
     function onVisible() {
@@ -1039,7 +1046,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
     const warnCount = alerts.filter(a => a.level === "warn").length;
     function close(fn) { return () => { setOpen(false); fn && fn(); }; }
     return (React.createElement(React.Fragment, null,
-        React.createElement("nav", { style: { height: "calc(52px + env(safe-area-inset-top, 20px))", paddingTop: "max(env(safe-area-inset-top, 20px), 12px)", padding: "0 14px", paddingLeft: 14, paddingRight: 14, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
+        React.createElement("nav", { style: { height: "calc(52px + env(safe-area-inset-top, 0px))", paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: 0, paddingLeft: 14, paddingRight: 14, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, background: "rgba(6,14,26,0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 150 } },
             React.createElement("button", { className: "hamburger", onClick: () => setOpen(o => !o), "aria-label": "Menu" },
                 React.createElement("span", { style: { transform: open ? "rotate(45deg) translate(5px,5px)" : "none" } }),
                 React.createElement("span", { style: { opacity: open ? 0 : 1 } }),
@@ -2709,8 +2716,8 @@ function TankModal({ mode, tank, onClose }) {
     const aLabel = ((_a = UNITS_DEF.area[aUnit]) === null || _a === void 0 ? void 0 : _a.label) || "m²";
     const dLabel = ((_b = UNITS_DEF.depth[dUnit]) === null || _b === void 0 ? void 0 : _b.label) || "m";
     const wLabel = ((_c = UNITS_DEF.weight[wUnit]) === null || _c === void 0 ? void 0 : _c.label) || "g";
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflowY: "auto" } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 500, padding: 22, maxHeight: "92vh", overflowY: "auto", margin: "auto" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "auto" } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 500, padding: 22, maxHeight: "90vh", overflowY: "auto", margin: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, mode === "new" ? "Novo Tanque" : "Editar Tanque"),
                 React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 20 } }, "\u2715")),
@@ -3056,8 +3063,8 @@ function StockInModal({ onClose }) {
         setConfirmed(true);
     }
     if (confirmed)
-        return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 } },
-            React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 420, padding: 32, textAlign: "center" } },
+        return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
+            React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 420, padding: 32, textAlign: "center", marginTop: 8 } },
                 React.createElement("div", { style: { fontSize: 52, marginBottom: 16 } }, "\u2705"),
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 20, marginBottom: 8 } }, "Estoque Atualizado!"),
                 React.createElement("div", { style: { fontFamily: "var(--mono)", fontSize: 24, color: "var(--green)", fontWeight: 700, marginBottom: 6 } },
@@ -3075,8 +3082,8 @@ function StockInModal({ onClose }) {
                     " \u00B7 ",
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, overflowY: "auto" } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "92vh", overflowY: "auto", margin: "auto" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", overflowY: "auto" } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "90vh", overflowY: "auto", margin: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("div", null,
                     React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\uD83D\uDCE5 Entrada de Ra\u00E7\u00E3o"),
@@ -3253,8 +3260,8 @@ function StockInModal({ onClose }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function SettingsModal({ onClose }) {
     const { units, setUnits, notifPerm, requestNotif, waterTimes, setWaterTimes } = useApp();
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 480, padding: 26, maxHeight: "90vh", overflowY: "auto" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 480, padding: 26, maxHeight: "88vh", overflowY: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 } },
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\u2699\uFE0F Configura\u00E7\u00F5es"),
                 React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 20 } }, "\u2715")),
@@ -3361,7 +3368,7 @@ function FinanceiroModal({ onClose }) {
     }
     const capexByCat = groupBy(capex, "cat");
     const opexByCat = groupBy(opexG, "cat");
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
         React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12, background: "var(--dark)" } },
             React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCB0"),
             React.createElement("div", null,
@@ -3794,7 +3801,7 @@ function RelatoriosModal({ onClose }) {
         downloadCSV(rows, `operacao_completa_${today()}.csv`);
         setExporting("");
     }
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
         React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12, background: "var(--dark)" } },
             React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCCB"),
             React.createElement("div", null,
@@ -3887,3 +3894,4 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
