@@ -120,31 +120,36 @@ var DB = {
 // ── Migration: move localStorage data to Supabase on first run ────────────────
 async function migrateLocalToSupabase() {
   var migrated = localStorage.getItem("aq_migrated_v1");
-  if (migrated) return;
+  if (migrated) return; // Already migrated — never run again
+  
+  // Safety check: only migrate if Supabase is empty
+  // Prevents overwriting data from other devices
+  var existingTanks = await DB.getTanks();
+  if (existingTanks && existingTanks.length > 0) {
+    // Supabase already has data — skip migration, just mark as done
+    localStorage.setItem("aq_migrated_v1", "1");
+    console.log("Supabase já tem dados — migração ignorada.");
+    return;
+  }
+  
   console.log("Migrando dados locais para Supabase...");
   try {
-    // Tanks
     var localTanks = JSON.parse(localStorage.getItem("aq_tanks")||"[]");
     for (var t of localTanks) { await DB.saveTank(t); }
-    // Logs
     var localLogs = JSON.parse(localStorage.getItem("aq_logs")||"{}");
     for (var tankId in localLogs) {
       for (var date in localLogs[tankId]) {
         await DB.saveLog(tankId, date, localLogs[tankId][date]);
       }
     }
-    // Expenses
     var localExp = JSON.parse(localStorage.getItem("aq_exp")||"{}");
     for (var tid in localExp) { await DB.saveExpenses(tid, localExp[tid]); }
-    // Stock
     var localStock = JSON.parse(localStorage.getItem("aq_stoc")||"null");
     if (localStock) await DB.saveStock(localStock);
-    // CAPEX / OPEX
     var localCapex = JSON.parse(localStorage.getItem("aq_capex")||"[]");
     if (localCapex.length) await DB.saveCapex(localCapex);
     var localOpex = JSON.parse(localStorage.getItem("aq_opex_g")||"[]");
     if (localOpex.length) await DB.saveOpex(localOpex);
-
     localStorage.setItem("aq_migrated_v1", "1");
     console.log("✅ Migração concluída!");
   } catch(e) {
@@ -851,19 +856,20 @@ function App() {
     async function loadFromDB(isSilent) {
       if (!isSilent) setSyncing(true);
       try {
-        // Migration only on first load, not on periodic sync
+        // Migration only on very first load ever
         if (!isSilent) await migrateLocalToSupabase();
         var [dbTanks, dbLogs, dbExp, dbStock, dbCapex, dbOpex] = await Promise.all([
           DB.getTanks(), DB.getLogs(), DB.getExpenses(),
           DB.getStock(), DB.getCapex(), DB.getOpex()
         ]);
-        // Always update state from Supabase — even if empty (deleted on another device)
-        if (dbTanks !== null) setTanks(dbTanks || []);
-        if (dbLogs  !== null) setLogs(dbLogs || {});
-        if (dbExp   !== null) setExpenses(dbExp || {});
+        // SAFE update: only replace state if Supabase returned real data
+        // Never wipe existing data with empty results (protects against network errors)
+        if (dbTanks && dbTanks.length > 0) setTanks(dbTanks);
+        if (dbLogs  && Object.keys(dbLogs).length > 0) setLogs(dbLogs);
+        if (dbExp   && Object.keys(dbExp).length  > 0) setExpenses(dbExp);
         if (dbStock && dbStock.bags !== undefined) setStock(dbStock);
-        if (dbCapex !== null) setCapex(dbCapex || []);
-        if (dbOpex  !== null) setOpexG(dbOpex || []);
+        if (dbCapex && dbCapex.length > 0) setCapex(dbCapex);
+        if (dbOpex  && dbOpex.length  > 0) setOpexG(dbOpex);
         setLastSync(new Date());
       } catch(e) {
         console.warn("Load from DB failed, using local:", e);
