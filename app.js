@@ -1934,7 +1934,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                     sp.minO2,
                     " \u00B7 ideal: ", sp === null || sp === void 0 ? void 0 :
                     sp.idealO2,
-                    " mg/L")),
+                    " mg/L"),
                   React.createElement("button", {
                     onClick: function() {
                       if (readings.length > 1) setReadings(function(p){ return p.slice(0,-1); });
@@ -1948,7 +1948,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                     style:{background:"rgba(14,165,233,0.1)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:6,padding:"3px 8px",cursor:"pointer",color:"var(--accent)",fontSize:12,fontFamily:"var(--font)"}
                   }, "+ Adicionar")
                 )),
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 } }, readings.map((r, i) => {
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(" + readings.length + ",1fr)", gap: 10 } }, readings.map((r, i) => {
                 const st = o2Status(r.o2);
                 return (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 12, border: `1px solid ${r.o2 ? st.color + "44" : "var(--border)"}` } },
                     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
@@ -2146,7 +2146,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                 React.createElement("div", null,
                     React.createElement("lbl", null, "Observa\u00E7\u00F5es"),
                     React.createElement("input", { className: "inp", placeholder: "Comportamento, a\u00E7\u00E3o...", value: feedForm.obs, onChange: e => setFeedForm(p => ({ ...p, obs: e.target.value })) }))),
-            React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, fontSize: 14 }, onClick: handleSave }, "\uD83D\uDCBE Salvar Registro do Dia")));
+            React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, fontSize: 14 }, onClick: handleSave }, "\uD83D\uDCBE Salvar Registro do Dia"))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // BIOMETRIA TAB
