@@ -1,5 +1,4 @@
-
-    const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
+const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
     const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } = Recharts;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1973,7 +1972,13 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                             style:{background:"rgba(239,68,68,0.15)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"50%",width:20,height:20,cursor:"pointer",color:"#f87171",fontSize:11,lineHeight:"1",display:"flex",alignItems:"center",justifyContent:"center",padding:0,fontFamily:"var(--font)"}
                           }, "✕")
                         )),
-                    React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", marginBottom: 8, textAlign: "center", fontFamily: "var(--mono)" } }, r.time),
+                    React.createElement("input", {
+                      type: "time", className: "inp",
+                      placeholder: "HH:MM",
+                      value: r.time || "",
+                      style: { textAlign: "center", fontFamily: "var(--mono)", fontSize: 15, marginBottom: 8, color: r.time ? "var(--text)" : "var(--muted)" },
+                      onChange: function(e) { updateReading(i, "time", e.target.value); }
+                    }),
                     React.createElement("div", { style: { marginBottom: 8 } },
                         React.createElement("lbl", null, "O\u2082 (mg/L)"),
                         React.createElement("input", { className: "inp", type: "number", step: "0.1", placeholder: `≥${sp === null || sp === void 0 ? void 0 : sp.idealO2}`, value: r.o2, style: { textAlign: "center", fontWeight: 700, fontSize: 15,
