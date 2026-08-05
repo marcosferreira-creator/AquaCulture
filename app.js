@@ -337,7 +337,7 @@ const CSS = `
   --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#a78bfa;
   --font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
 }
-body{background:var(--navy);color:var(--text);font-family:var(--font);min-height:100vh;}
+body{background:var(--navy);color:var(--text);font-family:var(--font);min-height:100vh;}body.modal-open{overflow:hidden;position:fixed;width:100%;}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:#1e3a5a;border-radius:4px}
 input,select,textarea{outline:none;font-family:var(--font);font-size:16px;}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;}
@@ -689,6 +689,8 @@ function LoginPage({ onLogin }){
 }
 
 function UserManagementModal({ onClose, currentUser }){
+
+  useLockBodyScroll();
   const [users, setUsersState] = useState(getUsers);
   (0, useEffect)(function(){
     DB.getUsers().then(function(dbUsers){
@@ -1093,7 +1095,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                 React.createElement("span", { style: { transform: open ? "rotate(-45deg) translate(5px,-5px)" : "none" } })),
             React.createElement("button", { onClick: close(goHome), style: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 7, flex: 1 } },
                 React.createElement("img", { src: "/icon.png", style: { width: 30, height: 30, objectFit: "cover", borderRadius: 6 } }),
-                React.createElement("span", { style: { fontWeight: 800, fontSize: 16, color: "var(--text)", letterSpacing: "-0.5px" } }, "AquaGest\u00E3o")),
+                React.createElement("span", { style: { fontWeight: 800, fontSize: 16, color: "var(--text)", letterSpacing: "-0.5px" } }, "AquaCulture")),
             dangerCount > 0 && (React.createElement("div", { className: "pulse badge", style: { background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.3)", fontSize: 10 } },
                 "\uD83D\uDD34 ",
                 dangerCount)),
@@ -2690,7 +2692,24 @@ function UnitToggle({ category, value, onChange }) {
             borderColor: value === k ? "var(--accent)" : "var(--border2)",
             color: value === k ? "#fff" : "var(--muted)" } }, u.label)))));
 }
+
+// ── Scroll lock helper for modals ─────────────────────────────────────────────
+function useLockBodyScroll() {
+  (0, useEffect)(function() {
+    var scrollY = window.scrollY;
+    document.body.classList.add("modal-open");
+    document.body.style.top = "-" + scrollY + "px";
+    return function() {
+      document.body.classList.remove("modal-open");
+      document.body.style.top = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+}
+
 function TankModal({ mode, tank, onClose }) {
+
+  useLockBodyScroll();
     var _a, _b, _c;
     const { addTank, updateTank, deleteTank, units, setUnits } = useApp();
     const def = tank || {};
@@ -2903,6 +2922,8 @@ const EMPTY_NF = {
     bags: "", costPerBag: "", totalValue: "", payMethod: "PIX", obs: ""
 };
 function StockInModal({ onClose }) {
+
+  useLockBodyScroll();
     const { addStockIn } = useApp();
     const [tab, setTab] = (0, useState)("manual"); // manual | upload
     const [form, setForm] = (0, useState)({ ...EMPTY_NF, date: today() });
@@ -3309,6 +3330,8 @@ function StockInModal({ onClose }) {
 // SETTINGS MODAL
 // ═══════════════════════════════════════════════════════════════════════════════
 function SettingsModal({ onClose }) {
+
+  useLockBodyScroll();
     const { units, setUnits, notifPerm, requestNotif, waterTimes, setWaterTimes } = useApp();
     return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
         React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 480, padding: 26, maxHeight: "88vh", overflowY: "auto", marginTop: 8, marginBottom: 8 } },
@@ -3360,6 +3383,8 @@ const OPEX_CATS = [
     "Medicamentos", "Outros OPEX"
 ];
 function FinanceiroModal({ onClose }) {
+
+  useLockBodyScroll();
     var _a, _b, _c, _d;
     const { capex, setCapex, opexG, setOpexG, schedule, setSchedule, tanks, expenses } = useApp();
     const [tab, setTab] = (0, useState)("capex");
@@ -3566,6 +3591,8 @@ function FinanceiroModal({ onClose }) {
 // RELATÓRIOS MODAL
 // ═══════════════════════════════════════════════════════════════════════════════
 function RelatoriosModal({ onClose }) {
+
+  useLockBodyScroll();
     var _a;
     const { tanks, logs, expenses, capex, opexG, stock, cycles } = useApp();
     const [tab, setTab] = (0, useState)("manejo");
