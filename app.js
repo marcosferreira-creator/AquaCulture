@@ -845,7 +845,7 @@ function App() {
     const [schedule, setSchedule] = (0, useState)(() => load("aq_sched", []));
     const [units, setUnits] = (0, useState)(() => load("aq_units", { area: "m2", depth: "m", weight: "g", feed: "sack", length: "cm" }));
     // Water reading times: 3 fixed slots, user can change in Settings
-    const [waterTimes, setWaterTimes] = (0, useState)(() => load("aq_water_times", ["06:00", "17:00"]));
+    const [waterTimes, setWaterTimes] = (0, useState)(() => load("aq_water_times", ["07:00", "15:00"]));
     const [page, setPage] = (0, useState)("dashboard");
     const [tankId, setTankId] = (0, useState)(null);
     const [showNewTank, setShowNewTank] = (0, useState)(false);
@@ -1937,23 +1937,28 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                     " mg/L"),
                   React.createElement("button", {
                     onClick: function() {
-                      if (readings.length > 1) setReadings(function(p){ return p.slice(0,-1); });
+                      var slots = ["07:00","12:00","15:00","18:00","20:00"];
+                      var nextTime = slots[readings.length] || "08:00";
+                      if (readings.length < 4) setReadings(function(p){ return [...p, {time:nextTime,o2:"",temp:"",ph:""}]; });
                     },
-                    style:{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:6,padding:"3px 8px",cursor:"pointer",color:"#f87171",fontSize:12,fontFamily:"var(--font)"}
-                  }, "\u2715 Remover"),
-                  React.createElement("button", {
-                    onClick: function() {
-                      if (readings.length < 4) setReadings(function(p){ return [...p, {time:"08:00",o2:"",temp:"",ph:""}]; });
-                    },
-                    style:{background:"rgba(14,165,233,0.1)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:6,padding:"3px 8px",cursor:"pointer",color:"var(--accent)",fontSize:12,fontFamily:"var(--font)"}
-                  }, "+ Adicionar")
+                    style:{background:"rgba(14,165,233,0.1)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:6,padding:"4px 10px",cursor:"pointer",color:"var(--accent)",fontSize:12,fontFamily:"var(--font)",fontWeight:600}
+                  }, "+ Adicionar leitura")
                 )),
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(" + readings.length + ",1fr)", gap: 10 } }, readings.map((r, i) => {
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: readings.length === 1 ? "1fr" : readings.length === 2 ? "1fr 1fr" : "1fr 1fr 1fr", gap: 10 } }, readings.map((r, i) => {
                 const st = o2Status(r.o2);
                 return (React.createElement("div", { key: i, style: { background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 12, border: `1px solid ${r.o2 ? st.color + "44" : "var(--border)"}` } },
                     React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 } },
                         React.createElement("span", { style: { fontSize: 12, fontWeight: 700 } }, slotLabels[i]),
-                        React.createElement("span", { style: { fontSize: 10, color: st.color, fontWeight: 600 } }, r.o2 ? st.label : "")),
+                        React.createElement("div", { style: { display:"flex", alignItems:"center", gap:6 } },
+                          React.createElement("span", { style: { fontSize: 10, color: st.color, fontWeight: 600 } }, r.o2 ? st.label : ""),
+                          readings.length > 1 && React.createElement("button", {
+                            onClick: function(e) {
+                              e.stopPropagation();
+                              setReadings(function(p){ return p.filter(function(_,idx){ return idx !== i; }); });
+                            },
+                            style:{background:"rgba(239,68,68,0.15)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"50%",width:20,height:20,cursor:"pointer",color:"#f87171",fontSize:11,lineHeight:"1",display:"flex",alignItems:"center",justifyContent:"center",padding:0,fontFamily:"var(--font)"}
+                          }, "✕")
+                        )),
                     React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", marginBottom: 8, textAlign: "center", fontFamily: "var(--mono)" } }, r.time),
                     React.createElement("div", { style: { marginBottom: 8 } },
                         React.createElement("lbl", null, "O\u2082 (mg/L)"),
@@ -3404,13 +3409,20 @@ function SettingsModal({ onClose }) {
                 React.createElement("div", { style: { background: "rgba(255,255,255,0.025)", borderRadius: 10, padding: "14px 16px" } },
                     React.createElement("div", { style: { fontSize: 13, fontWeight: 600, marginBottom: 4 } }, "\uD83D\uDCA7 Leituras di\u00E1rias de O\u2082 e temperatura"),
                     React.createElement("div", { style: { fontSize: 12, color: "var(--muted)", marginBottom: 12 } }, "Defina os hor\u00E1rios fixos. S\u00E3o aplicados em todos os tanques."),
-                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 } }, ["🌅 Manhã", "🌇 Final da Tarde", "🌙 Noite", "⭐ Extra"].slice(0, waterTimes.length).map((label, i) => (React.createElement("div", { key: i },
-                        React.createElement("lbl", null, label),
-                        React.createElement("input", { type: "time", className: "inp", style: { marginTop: 4, textAlign: "center", fontFamily: "var(--mono)" }, value: waterTimes[i], onChange: e => {
-                                const next = [...waterTimes];
+                    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 } }, ["🌅 Manhã", "🌇 Final da Tarde", "🌙 Noite", "⭐ Extra"].slice(0, waterTimes.length).map(function(label, i) { return React.createElement("div", { key: i, style:{position:"relative"} },
+                        React.createElement("div", { style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4} },
+                          React.createElement("lbl", { style:{margin:0} }, label),
+                          waterTimes.length > 1 && React.createElement("button", {
+                            onClick: function(){ setWaterTimes(function(p){ return p.filter(function(_,idx){ return idx!==i; }); }); },
+                            style:{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:6,padding:"2px 7px",cursor:"pointer",color:"#f87171",fontSize:11,fontFamily:"var(--font)"}
+                          }, "✕")
+                        ),
+                        React.createElement("input", { type: "time", className: "inp", style: { textAlign: "center", fontFamily: "var(--mono)" }, value: waterTimes[i], onChange: function(e) {
+                                var next = [...waterTimes];
                                 next[i] = e.target.value;
                                 setWaterTimes(next);
-                            } })))))),
+                            } }));
+                      }))),
                 React.createElement("div", { className: "section-hdr", style: { marginTop: 8 } }, "Notifica\u00E7\u00F5es"),
                 React.createElement("div", { style: { background: "rgba(255,255,255,0.025)", borderRadius: 10, padding: "14px 16px" } },
                     React.createElement("div", { style: { fontSize: 13, fontWeight: 600, marginBottom: 4 } }, "\uD83D\uDD14 Alertas do navegador"),
@@ -4022,4 +4034,3 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-  
