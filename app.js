@@ -339,10 +339,10 @@ const CSS = `
 }
 body{background:var(--navy);color:var(--text);font-family:var(--font);min-height:100vh;}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:#1e3a5a;border-radius:4px}
-input,select,textarea{outline:none;font-family:var(--font);}
+input,select,textarea{outline:none;font-family:var(--font);font-size:16px;}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;}
 .card2{background:var(--card2);border:1px solid var(--border2);border-radius:10px;}
-.inp{background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:9px;padding:9px 13px;color:var(--text);font-size:13px;width:100%;transition:border-color .2s;color-scheme:dark;}select.inp,select{color-scheme:dark;background:#0d1829!important;color:#e2e8f0!important;}option{background:#0d1829!important;color:#e2e8f0!important;}
+.inp{background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:9px;padding:9px 13px;color:var(--text);font-size:16px;width:100%;transition:border-color .2s;color-scheme:dark;}select.inp,select{color-scheme:dark;background:#0d1829!important;color:#e2e8f0!important;}option{background:#0d1829!important;color:#e2e8f0!important;}
 .inp:focus{border-color:var(--accent);}
 .inp option{background:#0b1626;}
 .btn{border:none;border-radius:9px;padding:9px 18px;cursor:pointer;font-family:var(--font);font-weight:600;font-size:13px;transition:all .2s;}
@@ -2692,7 +2692,7 @@ function UnitToggle({ category, value, onChange }) {
 }
 function TankModal({ mode, tank, onClose }) {
     var _a, _b, _c;
-    const { addTank, updateTank, units, setUnits } = useApp();
+    const { addTank, updateTank, deleteTank, units, setUnits } = useApp();
     const def = tank || {};
     // local display values — stored internally in base units (m², m, g)
     // but displayed in the user's chosen unit
@@ -2883,7 +2883,17 @@ function TankModal({ mode, tank, onClose }) {
                         );
                     })()
                 ),
-                React.createElement("button", { className: "btn btn-p", style: { padding: 13, fontSize: 14 }, onClick: handleSubmit }, mode === "new" ? "✅ Criar Tanque" : "✅ Salvar Alterações")))));
+                React.createElement("button", { className: "btn btn-p", style: { padding: 13, fontSize: 14 }, onClick: handleSubmit }, mode === "new" ? "✅ Criar Tanque" : "✅ Salvar Alterações"),
+                mode === "edit" && React.createElement("button", {
+                    className: "btn btn-r",
+                    style: { padding: 13, fontSize: 14, marginTop: 4 },
+                    onClick: function() {
+                        if (confirm("Tem certeza que deseja APAGAR o tanque \"" + (tank && tank.name) + "\"? Todos os registros e despesas serao perdidos.")) {
+                            deleteTank(tank.id);
+                            onClose();
+                        }
+                    }
+                }, "🗑️ Apagar Tanque")))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // STOCK IN MODAL — Manual + Upload NF com leitura por IA
