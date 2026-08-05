@@ -1972,12 +1972,12 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                             style:{background:"rgba(239,68,68,0.15)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:"50%",width:20,height:20,cursor:"pointer",color:"#f87171",fontSize:11,lineHeight:"1",display:"flex",alignItems:"center",justifyContent:"center",padding:0,fontFamily:"var(--font)"}
                           }, "✕")
                         )),
-                    React.createElement("div", { style: { marginBottom: 8 } },
-                      React.createElement("lbl", { style: { fontSize: 9, marginBottom: 2 } }, "HOR\u00C1RIO"),
+                    React.createElement("div", { style: { display:"flex", alignItems:"center", gap:6, marginBottom:8 } },
+                      React.createElement("span", { style: { fontSize:10, color:"var(--muted)", fontWeight:600, textTransform:"uppercase", letterSpacing:".4px", flexShrink:0 } }, "Hor\u00E1rio"),
                       React.createElement("input", {
-                        type: "time", className: "inp",
+                        type: "time",
                         value: r.time || "",
-                        style: { textAlign: "center", fontFamily: "var(--mono)", fontSize: 13, padding: "5px 8px", height: 32 },
+                        style: { background:"transparent", border:"none", borderBottom:"1px solid var(--border2)", color:"var(--text)", fontFamily:"var(--mono)", fontSize:13, padding:"2px 4px", width:80, outline:"none", colorScheme:"dark" },
                         onChange: function(e) { updateReading(i, "time", e.target.value); }
                       })
                     ),
