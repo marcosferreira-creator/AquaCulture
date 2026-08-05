@@ -1,4 +1,5 @@
-const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
+
+    const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
     const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } = Recharts;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -419,8 +420,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 @supports(padding-top:env(safe-area-inset-top)){
   nav{padding-top:env(safe-area-inset-top)!important;height:calc(52px + env(safe-area-inset-top))!important;}
   .mob-menu{padding-top:calc(env(safe-area-inset-top) + 64px)!important;}
-  .bottom-bar{padding-bottom:env(safe-area-inset-bottom)!important;}
-  .page-content{padding-bottom:calc(90px + env(safe-area-inset-bottom))!important;}
+  .bottom-bar{padding-bottom:env(safe-area-inset-bottom)!important;bottom:0!important;}
+  .page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom))!important;}
+}
+/* Keep bottom bar fixed even when iOS keyboard opens */
+@media screen and (max-height: 500px) {
+  .bottom-bar { display: none !important; }
 }
 `;
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1747,7 +1752,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
     const [readings, setReadings] = (0, useState)(() => {
         var _a;
         if ((_a = dl.readings) === null || _a === void 0 ? void 0 : _a.length)
-            return dl.readings.map((r, i) => ({ time: waterTimes[i] || r.time || emptyReadings[i].time, o2: r.o2 || "", temp: r.temp || "", ph: r.ph || "" }));
+            return dl.readings.map((r, i) => ({ time: r.time || "", o2: r.o2 || "", temp: r.temp || "", ph: r.ph || "" }));
         return emptyReadings;
     });
     const [feedForm, setFeedForm] = (0, useState)({ feedGiven: "", feedRefused: "", mortality: dl.mortality || "", obs: dl.obs || "" });
@@ -1769,9 +1774,9 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         const d = ((_a = logs[tank.id]) === null || _a === void 0 ? void 0 : _a[activeDate]) || {};
         if ((_b = d.readings) === null || _b === void 0 ? void 0 : _b.length)
-            setReadings(d.readings.map((r, i) => ({ time: waterTimes[i] || r.time, o2: r.o2 || "", temp: r.temp || "", ph: r.ph || "" })));
+            setReadings(d.readings.map((r, i) => ({ time: r.time || "", o2: r.o2 || "", temp: r.temp || "", ph: r.ph || "" })));
         else
-            setReadings(waterTimes.map(t => ({ time: t, o2: "", temp: "" })));
+            setReadings(emptyReadings.map(function(r){ return Object.assign({},r); }));
         setFeedForm({ feedGiven: "", feedRefused: "", mortality: d.mortality || "", obs: d.obs || "" });
         setEngVisit({
             active: !!((_c = d.engVisit) === null || _c === void 0 ? void 0 : _c.active),
