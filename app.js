@@ -1,4 +1,5 @@
-const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
+// AquaCulture v2.8 - 
+    const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
     const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } = Recharts;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1659,7 +1660,7 @@ function StockPanel() {
 // ═══════════════════════════════════════════════════════════════════════════════
 function TankPage({ onEdit }) {
     var _a;
-    const { activeTank: tank, logs } = useApp();
+    const { activeTank: tank, logs, goHome } = useApp();
     const [tab, setTab] = (0, useState)("daily");
     const sp = SP[tank.species];
     const phase = getPhase(tank.species, tank.avgWeightG || 0);
@@ -1688,6 +1689,10 @@ function TankPage({ onEdit }) {
     return (React.createElement("div", { className: "slide page-content" },
         React.createElement("div", { style: { marginBottom: 20 } },
             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, marginBottom: 10 } },
+                React.createElement("button", {
+                    onClick: goHome,
+                    style: { background:"none", border:"none", cursor:"pointer", color:"var(--muted)", fontSize:22, padding:"4px 8px", flexShrink:0, lineHeight:1 }
+                }, "←"),
                 React.createElement("span", { style: { fontSize: 26 } }, sp === null || sp === void 0 ? void 0 : sp.icon),
                 React.createElement("div", null,
                     React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
