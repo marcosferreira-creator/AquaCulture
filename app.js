@@ -1763,6 +1763,9 @@ function getSlotLabel(timeStr) {
 function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
     var _a;
     const { updateDayLog, logs, activeDate, setActiveDate, consumeStock, stock, waterTimes, goHome } = useApp();
+    // Use manual override if set, otherwise use phase recommendation
+    var effectivePct = tank.overrideFeedPct ? parseInt(tank.overrideFeedPct) : (phase && phase.protPct);
+    var isOverride = !!tank.overrideFeedPct;
     const dl = ((_a = logs[tank.id]) === null || _a === void 0 ? void 0 : _a[activeDate]) || {};
     // readings[0]=manhã, [1]=tarde, [2]=noite
     const emptyReadings = [{ time: "", o2: "", temp: "", ph: "" }, { time: "", o2: "", temp: "", ph: "" }];
@@ -1933,9 +1936,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                         (dailySacks / (phase === null || phase === void 0 ? void 0 : phase.freq)).toFixed(3),
                         " sc/refei\u00E7\u00E3o \u00B7 ",
                         React.createElement("span", { style: { color: "#fbbf24", fontWeight: 700 } },
-                            "prot. ", phase === null || phase === void 0 ? void 0 :
-                            phase.protPct,
-                            "%")),
+                            "prot. ", effectivePct, "%", isOverride ? " ✏️" : "")),
                     React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", marginTop: 2 } },
                         "Estoque: ",
                         React.createElement("strong", { style: { color: stock.bags < 10 ? "var(--red)" : "var(--text)" } },
@@ -2111,9 +2112,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                         "\u00B7 ",
                         sacosPerMeal.toFixed(3),
                         " sc/refei\u00E7\u00E3o \u00B7 prot. ",
-                        React.createElement("span", { style: { color: "#fbbf24", fontWeight: 700 } }, phase === null || phase === void 0 ? void 0 :
-                            phase.protPct,
-                            "%"))),
+                        React.createElement("span", { style: { color: "#fbbf24", fontWeight: 700 } }, effectivePct, "%", isOverride ? " ✏️" : ""))),
                 React.createElement("div", { style: { background: "rgba(0,0,0,0.2)", borderRadius: 9, padding: "8px 14px", textAlign: "center" } },
                     React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, "Tipo"),
                     React.createElement("div", { style: { fontSize: 13, fontWeight: 700, marginTop: 2 } }, (() => { var _a, _b, _c, _d; const ft = (_a = SP[tank.species]) === null || _a === void 0 ? void 0 : _a.feedTable; const idx = (_c = (_b = SP[tank.species]) === null || _b === void 0 ? void 0 : _b.phases) === null || _c === void 0 ? void 0 : _c.findIndex(p => p.name === (phase === null || phase === void 0 ? void 0 : phase.name)); return ((_d = ft === null || ft === void 0 ? void 0 : ft[idx]) === null || _d === void 0 ? void 0 : _d.obs) || ""; })()))),
@@ -2769,28 +2768,43 @@ function useLockBodyScroll() {
 
 
 
-// ── Swipe right to close: detecta no documento inteiro ──────────────────────
+// ── Swipe right to close modals ──────────────────────────────────────────────
 function useSwipeToClose(onClose) {
   var ref = React.useRef(null);
   (0, useEffect)(function() {
-    var startX = 0, startY = 0, active = false;
+    var startX = 0, startY = 0, startTime = 0, active = false;
     function onStart(e) {
-      startX = e.touches[0].clientX;
+      var x = e.touches[0].clientX;
+      startX = x;
       startY = e.touches[0].clientY;
-      // Only trigger if swipe starts from left 40% of screen
-      active = startX < window.innerWidth * 0.5;
+      startTime = Date.now();
+      // Trigger from anywhere in the left 60% of screen (not just edge)
+      active = x < window.innerWidth * 0.6;
+    }
+    function onMove(e) {
+      if (!active) return;
+      var dx = e.touches[0].clientX - startX;
+      var dy = Math.abs(e.touches[0].clientY - startY);
+      // If moving right and mostly horizontal, it's a close swipe
+      if (dx > 30 && dy < dx * 0.8) {
+        // Don't prevent default — let Safari handle if it wants to
+      }
     }
     function onEnd(e) {
       if (!active) return;
+      active = false;
       var dx = e.changedTouches[0].clientX - startX;
       var dy = Math.abs(e.changedTouches[0].clientY - startY);
-      if (dx > 60 && dy < 120) onClose();
-      active = false;
+      var dt = Date.now() - startTime;
+      // Swipe right: >50px horizontal, mostly horizontal, fast enough
+      if (dx > 50 && dy < 80 && dt < 500) onClose();
     }
     document.addEventListener("touchstart", onStart, { passive: true });
+    document.addEventListener("touchmove", onMove, { passive: true });
     document.addEventListener("touchend", onEnd, { passive: true });
     return function() {
       document.removeEventListener("touchstart", onStart);
+      document.removeEventListener("touchmove", onMove);
       document.removeEventListener("touchend", onEnd);
     };
   }, [onClose]);
@@ -2819,6 +2833,7 @@ function TankModal({ mode, tank, onClose }) {
         fishCount: def.fishCount || "",
         pricePerKg: def.pricePerKg || 21,
         targetWeightKg: def.targetWeightKg || "",
+        overrideFeedPct: def.overrideFeedPct || "",
     });
     const sp = SP[form.species];
     // Convert display → base for calcs
@@ -2858,6 +2873,7 @@ function TankModal({ mode, tank, onClose }) {
             avgWeightG: weightBase || 50,
             pricePerKg: parseFloat(form.pricePerKg) || 21,
             targetWeightKg: parseFloat(form.targetWeightKg) || 0,
+            overrideFeedPct: parseInt(form.overrideFeedPct) || 0,
             createdAt: (tank === null || tank === void 0 ? void 0 : tank.createdAt) || today(),
         };
         mode === "new" ? addTank(data) : updateTank(data);
@@ -2945,6 +2961,41 @@ function TankModal({ mode, tank, onClose }) {
                 React.createElement("div", null,
                     React.createElement("lbl", null, "Pre\u00E7o de Venda Esperado (R$/kg)"),
                     React.createElement("input", { className: "inp", type: "number", step: "0.5", value: form.pricePerKg, onChange: e => setForm(p => ({ ...p, pricePerKg: e.target.value })) })),
+                React.createElement("div", { style:{background:"rgba(14,165,233,0.06)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:10,padding:"12px 14px"} },
+                    React.createElement("div", { style:{fontSize:12,fontWeight:700,color:"var(--accent)",marginBottom:8} }, "\uD83C\uDF5D Ra\u00E7\u00E3o Manual (opcional)"),
+                    React.createElement("div", { style:{fontSize:11,color:"var(--muted)",marginBottom:10,lineHeight:1.5} }, "Sobrescreve a sugest\u00E3o autom\u00E1tica. Use quando voc\u00EA j\u00E1 mudou a ra\u00E7\u00E3o antes da pr\u00F3xima biometria."),
+                    React.createElement("lbl", null, "% Prote\u00EDna que est\u00E1 usando agora"),
+                    React.createElement("select", { className: "inp", value: form.overrideFeedPct, onChange: function(e){ setForm(function(p){ return Object.assign({},p,{overrideFeedPct:e.target.value}); }); } },
+                        React.createElement("option", { value: "" }, "\u2022 Autom\u00E1tico (pelo peso da biometria)"),
+                        React.createElement("option", { value: "45" }, "45% \u2014 Alevino micro"),
+                        React.createElement("option", { value: "40" }, "40% \u2014 Alevino"),
+                        React.createElement("option", { value: "36" }, "36% \u2014 Juvenil"),
+                        React.createElement("option", { value: "32" }, "32% \u2014 Engorda I"),
+                        React.createElement("option", { value: "28" }, "28% \u2014 Engorda II / despesca")
+                    ),
+                    form.overrideFeedPct ? React.createElement("div", { style:{marginTop:6,fontSize:12,color:"var(--accent)",fontWeight:600} },
+                        "\u2705 Usando ", form.overrideFeedPct, "% at\u00E9 voc\u00EA remover este ajuste"
+                    ) : null
+                ),
+                React.createElement("div", { style:{background:"rgba(14,165,233,0.06)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:10,padding:"12px 14px"} },
+                    React.createElement("div", { style:{fontSize:12,fontWeight:700,color:"var(--accent)",marginBottom:8} }, "\uD83C\uDF5D Ra\u00E7\u00E3o Manual (opcional)"),
+                    React.createElement("div", { style:{fontSize:11,color:"var(--muted)",marginBottom:10,lineHeight:1.5} }, "Sobrescreve a sugest\u00E3o autom\u00E1tica de prote\u00EDna. Use quando voc\u00EA j\u00E1 mudou a ra\u00E7\u00E3o antes da pr\u00F3xima biometria."),
+                    React.createElement("div", null,
+                        React.createElement("lbl", null, "% Prote\u00EDna que est\u00E1 usando agora"),
+                        React.createElement("select", { className: "inp", value: form.overrideFeedPct, onChange: e => setForm(p => ({ ...p, overrideFeedPct: e.target.value })) },
+                            React.createElement("option", { value: "" }, "\u2022 Autom\u00E1tico (pelo peso da biometria)"),
+                            React.createElement("option", { value: "45" }, "45% \u2014 Alevino micro"),
+                            React.createElement("option", { value: "40" }, "40% \u2014 Alevino"),
+                            React.createElement("option", { value: "36" }, "36% \u2014 Juvenil"),
+                            React.createElement("option", { value: "32" }, "32% \u2014 Engorda I"),
+                            React.createElement("option", { value: "28" }, "28% \u2014 Engorda II / despesca")
+                        ),
+                        form.overrideFeedPct && React.createElement("div", { style:{marginTop:6,fontSize:12,color:"var(--accent)",fontWeight:600} },
+                            "\u2705 Sistema vai recomendar ra\u00E7\u00E3o de ",
+                            form.overrideFeedPct, "% at\u00E9 voc\u00EA remover este ajuste"
+                        )
+                    )
+                ),
                 React.createElement("div", { style:{marginTop:4,padding:"14px 16px",background:"rgba(168,85,247,0.06)",border:"1px solid rgba(168,85,247,0.2)",borderRadius:12} },
                     React.createElement("div", { style:{fontSize:13,fontWeight:700,color:"#a855f7",marginBottom:12} }, "\uD83C\uDFAF Expectativa de Despesca"),
                     React.createElement("div", null,
