@@ -369,7 +369,7 @@ lbl{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spaci
 .alert-bar{padding:11px 16px;border-radius:10px;font-size:13px;display:flex;align-items:center;gap:10px;}
 .tab-btn{padding:7px 15px;border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:500;font-size:12px;transition:all .2s;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--muted);}
 .tab-btn.active{background:linear-gradient(135deg,#0ea5e9,#0284c7);border-color:transparent;color:#fff;}
-table{width:100%;border-collapse:collapse;}
+table{width:100%;border-collapse:collapse;}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;}
 th{background:rgba(14,165,233,0.12);color:var(--accent2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;text-align:left;}
 td{padding:8px 12px;font-size:13px;border-bottom:1px solid var(--border);}
 tr:last-child td{border-bottom:none;}
@@ -1356,7 +1356,8 @@ function RankingPanel({ ranking }) {
     return (React.createElement("div", { className: "card", style: { padding: 20 } },
         React.createElement("div", { className: "section-hdr" }, "Ranking por Convers\u00E3o Alimentar (FCR)"),
         React.createElement("p", { style: { fontSize: 12, color: "var(--muted)", marginBottom: 14 } }, "Menor FCR = melhor convers\u00E3o. FCR ideal por fase: 1,2\u20131,8."),
-        React.createElement("table", null,
+        React.createElement("div", { style: { overflowX: "auto", WebkitOverflowScrolling: "touch", marginLeft: -2, marginRight: -2 } },
+        React.createElement("table", { style: { minWidth: 520 } },
             React.createElement("thead", null,
                 React.createElement("tr", null,
                     React.createElement("th", null, "#"),
@@ -1392,7 +1393,7 @@ function RankingPanel({ ranking }) {
                     React.createElement("td", { style: { fontFamily: "var(--mono)" } },
                         sacos(t.fedKg || 0),
                         " sacos")));
-            })))));
+            }))))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // FEED TABLE PANEL — tabela de arraçoamento por espécie e peso
@@ -1626,7 +1627,8 @@ function StockPanel() {
                 })())),
         React.createElement("div", { className: "card", style: { padding: 18 } },
             React.createElement("div", { className: "section-hdr" }, "\uD83D\uDCCB Hist\u00F3rico de Movimenta\u00E7\u00F5es"),
-            React.createElement("table", null,
+            React.createElement("div", { className: "table-scroll" },
+            React.createElement("table", { style: { minWidth: 600 } },
                 React.createElement("thead", null,
                     React.createElement("tr", null,
                         React.createElement("th", null, "Data"),
@@ -1653,7 +1655,7 @@ function StockPanel() {
                         React.createElement("td", { style: { fontFamily: "var(--mono)", fontWeight: 600, color: "var(--green)" } }, h.total ? fmtBRL(h.total) : "—"),
                         React.createElement("td", { style: { fontSize: 12, color: "var(--muted)" } }, h.payMethod || "—")))),
                     stock.history.length === 0 && React.createElement("tr", null,
-                        React.createElement("td", { colSpan: 9, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhuma movimenta\u00E7\u00E3o registrada")))))));
+                        React.createElement("td", { colSpan: 9, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhuma movimenta\u00E7\u00E3o registrada"))))))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // TANK PAGE
