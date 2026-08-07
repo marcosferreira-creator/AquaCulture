@@ -426,6 +426,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 @media screen and (max-height: 500px) {
   .bottom-bar { display: none !important; }
 }
+.keyboard-open .bottom-bar { display: none !important; }
 `;
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN APP
@@ -920,6 +921,23 @@ function App() {
     (0, useEffect)(() => {
         if ("Notification" in window)
             setNotifPerm(Notification.permission);
+    }, []);
+    // Hide bottom bar when iOS keyboard opens
+    (0, useEffect)(function() {
+        if (!window.visualViewport) return;
+        function onViewportChange() {
+            var heightRatio = window.visualViewport.height / window.screen.height;
+            if (heightRatio < 0.75) {
+                document.body.classList.add("keyboard-open");
+            } else {
+                document.body.classList.remove("keyboard-open");
+            }
+        }
+        window.visualViewport.addEventListener("resize", onViewportChange);
+        return function() {
+            window.visualViewport.removeEventListener("resize", onViewportChange);
+            document.body.classList.remove("keyboard-open");
+        };
     }, []);
     function requestNotif() {
         if ("Notification" in window)
