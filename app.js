@@ -1660,7 +1660,7 @@ function StockPanel() {
 // ═══════════════════════════════════════════════════════════════════════════════
 function TankPage({ onEdit }) {
     var _a;
-    const { activeTank: tank, logs, goHome } = useApp();
+    const { activeTank: tank, logs, goHome, updateTank } = useApp();
     const [tab, setTab] = (0, useState)("daily");
     const sp = SP[tank.species];
     const phase = getPhase(tank.species, tank.avgWeightG || 0);
@@ -1704,7 +1704,7 @@ function TankPage({ onEdit }) {
                         React.createElement("span", { className: "badge", style: { background: shouldFeed ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)", color: shouldFeed ? "var(--green)" : "var(--red)", border: `1px solid ${shouldFeed ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}` } }, o2 === 0 ? "⚪ Registre O₂" : shouldFeed ? "✅ Alimentar" : "🚫 Não Alimentar")))),
             React.createElement("div", { className: "kpi-row" }, [
                 { ico: "__LOGO__", val: (tank.fishCount || 0).toLocaleString("pt-BR"), lbl: "Peixes" },
-                { ico: "⚖️", val: `${tank.avgWeightG || 0}g`, lbl: "Peso" },
+                { ico: "⚖️", val: `${tank.avgWeightG || 0}g ✏️`, lbl: "Peso", onTap: function(){ var w = prompt("Peso estimado atual (g):", tank.avgWeightG || ""); if(w && parseFloat(w) > 0){ var newW = parseFloat(w); var bioH = [...(tank.bioHistory||[]), {date:today(), avgWeightG:newW, avgLengthCm:0, fishCount:tank.fishCount||0, source:"estimativa_manual", _at:new Date().toLocaleString("pt-BR")}]; updateTank(Object.assign({},tank,{avgWeightG:newW, bioHistory:bioH})); } } },
                 { ico: "🏋️", val: `${biomassKg.toFixed(1)} kg`, lbl: "Biomassa" },
                 { ico: "🍽️", val: `${(dailyFeedKg / 25).toFixed(2)}sc`, lbl: "Ração/Dia" },
                 { ico: "📊", val: fcr, lbl: "FCR Real", warn: fcr !== "—" && parseFloat(fcr) > (FCR_META[tank.species] || 2.5) },
@@ -1732,7 +1732,7 @@ function TankPage({ onEdit }) {
                 })(),
                 color: "#a855f7"
             }] : []),
-            ].map(k => (React.createElement("div", { key: k.lbl, className: "kpi-chip", style: { borderColor: k.warn ? "rgba(239,68,68,0.4)" : "var(--border)" } },
+            ].map(k => (React.createElement("div", { key: k.lbl, className: "kpi-chip", onClick: k.onTap || undefined, style: { borderColor: k.warn ? "rgba(239,68,68,0.4)" : "var(--border2)", cursor: k.onTap ? "pointer" : "default", outline: k.onTap ? "1px solid rgba(14,165,233,0.3)" : "none" } },
                 k.ico === "__LOGO__" ? React.createElement("img", { src: "/icon.png", style: { width: 22, height: 22, objectFit: "cover", borderRadius: 4, display: "inline-block" } }) : React.createElement("div", { style: { fontSize: 16 } }, k.ico),
                 React.createElement("div", { className: "val", style: { fontSize: 14, color: k.warn ? "var(--red)" : "var(--text)" } }, k.val),
                 React.createElement("div", { className: "lbl" }, k.lbl)))))),
@@ -2966,42 +2966,18 @@ function TankModal({ mode, tank, onClose }) {
                 React.createElement("div", null,
                     React.createElement("lbl", null, "Pre\u00E7o de Venda Esperado (R$/kg)"),
                     React.createElement("input", { className: "inp", type: "number", step: "0.5", value: form.pricePerKg, onChange: e => setForm(p => ({ ...p, pricePerKg: e.target.value })) })),
-                React.createElement("div", { style:{background:"rgba(14,165,233,0.06)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:10,padding:"12px 14px"} },
-                    React.createElement("div", { style:{fontSize:12,fontWeight:700,color:"var(--accent)",marginBottom:8} }, "\uD83C\uDF5D Ra\u00E7\u00E3o Manual (opcional)"),
-                    React.createElement("div", { style:{fontSize:11,color:"var(--muted)",marginBottom:10,lineHeight:1.5} }, "Sobrescreve a sugest\u00E3o autom\u00E1tica. Use quando voc\u00EA j\u00E1 mudou a ra\u00E7\u00E3o antes da pr\u00F3xima biometria."),
-                    React.createElement("lbl", null, "% Prote\u00EDna que est\u00E1 usando agora"),
-                    React.createElement("select", { className: "inp", value: form.overrideFeedPct, onChange: function(e){ setForm(function(p){ return Object.assign({},p,{overrideFeedPct:e.target.value}); }); } },
-                        React.createElement("option", { value: "" }, "\u2022 Autom\u00E1tico (pelo peso da biometria)"),
-                        React.createElement("option", { value: "45" }, "45% \u2014 Alevino micro"),
-                        React.createElement("option", { value: "40" }, "40% \u2014 Alevino"),
-                        React.createElement("option", { value: "36" }, "36% \u2014 Juvenil"),
-                        React.createElement("option", { value: "32" }, "32% \u2014 Engorda I"),
-                        React.createElement("option", { value: "28" }, "28% \u2014 Engorda II / despesca")
-                    ),
-                    form.overrideFeedPct ? React.createElement("div", { style:{marginTop:6,fontSize:12,color:"var(--accent)",fontWeight:600} },
-                        "\u2705 Usando ", form.overrideFeedPct, "% at\u00E9 voc\u00EA remover este ajuste"
-                    ) : null
-                ),
-                React.createElement("div", { style:{background:"rgba(14,165,233,0.06)",border:"1px solid rgba(14,165,233,0.2)",borderRadius:10,padding:"12px 14px"} },
-                    React.createElement("div", { style:{fontSize:12,fontWeight:700,color:"var(--accent)",marginBottom:8} }, "\uD83C\uDF5D Ra\u00E7\u00E3o Manual (opcional)"),
-                    React.createElement("div", { style:{fontSize:11,color:"var(--muted)",marginBottom:10,lineHeight:1.5} }, "Sobrescreve a sugest\u00E3o autom\u00E1tica de prote\u00EDna. Use quando voc\u00EA j\u00E1 mudou a ra\u00E7\u00E3o antes da pr\u00F3xima biometria."),
-                    React.createElement("div", null,
-                        React.createElement("lbl", null, "% Prote\u00EDna que est\u00E1 usando agora"),
-                        React.createElement("select", { className: "inp", value: form.overrideFeedPct, onChange: e => setForm(p => ({ ...p, overrideFeedPct: e.target.value })) },
-                            React.createElement("option", { value: "" }, "\u2022 Autom\u00E1tico (pelo peso da biometria)"),
-                            React.createElement("option", { value: "45" }, "45% \u2014 Alevino micro"),
-                            React.createElement("option", { value: "40" }, "40% \u2014 Alevino"),
-                            React.createElement("option", { value: "36" }, "36% \u2014 Juvenil"),
-                            React.createElement("option", { value: "32" }, "32% \u2014 Engorda I"),
-                            React.createElement("option", { value: "28" }, "28% \u2014 Engorda II / despesca")
-                        ),
-                        form.overrideFeedPct && React.createElement("div", { style:{marginTop:6,fontSize:12,color:"var(--accent)",fontWeight:600} },
-                            "\u2705 Sistema vai recomendar ra\u00E7\u00E3o de ",
-                            form.overrideFeedPct, "% at\u00E9 voc\u00EA remover este ajuste"
-                        )
+                React.createElement("div", { style:{display:"flex",alignItems:"center",gap:10,padding:"8px 0"} },
+                    React.createElement("lbl", { style:{margin:0,flexShrink:0} }, "Ra\u00E7\u00E3o manual:"),
+                    React.createElement("select", { className:"inp", style:{flex:1}, value:form.overrideFeedPct, onChange:function(e){ setForm(function(p){ return Object.assign({},p,{overrideFeedPct:e.target.value}); }); } },
+                        React.createElement("option", { value:"" }, "Autom\u00E1tico (biometria)"),
+                        React.createElement("option", { value:"45" }, "45% \u2014 Alevino micro"),
+                        React.createElement("option", { value:"40" }, "40% \u2014 Alevino"),
+                        React.createElement("option", { value:"36" }, "36% \u2014 Juvenil"),
+                        React.createElement("option", { value:"32" }, "32% \u2014 Engorda I"),
+                        React.createElement("option", { value:"28" }, "28% \u2014 Engorda II")
                     )
                 ),
-                React.createElement("div", { style:{marginTop:4,padding:"14px 16px",background:"rgba(168,85,247,0.06)",border:"1px solid rgba(168,85,247,0.2)",borderRadius:12} },
+                                React.createElement("div", { style:{marginTop:4,padding:"14px 16px",background:"rgba(168,85,247,0.06)",border:"1px solid rgba(168,85,247,0.2)",borderRadius:12} },
                     React.createElement("div", { style:{fontSize:13,fontWeight:700,color:"#a855f7",marginBottom:12} }, "\uD83C\uDFAF Expectativa de Despesca"),
                     React.createElement("div", null,
                         React.createElement("lbl", null, "Peso Alvo por Peixe na Despesca (kg)"),
