@@ -1293,7 +1293,11 @@ function TankCard({ tank, onOpen, onEdit }) {
             React.createElement("div", { onClick: onOpen, style: { flex: 1 } },
                 React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6 } },
                     React.createElement("span", { style: { fontSize: 18 } }, sp === null || sp === void 0 ? void 0 : sp.icon),
-                    React.createElement("span", { style: { fontWeight: 700, fontSize: 15 } }, tank.name)),
+                    React.createElement("span", { style: { fontWeight: 700, fontSize: 15 } }, tank.name),
+                    (dl.savedAt || dl.feedGiven || dl.feedGivenKg || dl.o2) ?
+                        React.createElement("span", { title: "Registro do dia feito", style:{marginLeft:"auto",fontSize:16,lineHeight:1} }, "\u2705") :
+                        React.createElement("span", { title: "Sem registro hoje", style:{marginLeft:"auto",fontSize:14,color:"var(--muted)",lineHeight:1} }, "\u25CB")
+                    ),
                 React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } },
                     React.createElement("span", { className: "badge", style: { background: (sp === null || sp === void 0 ? void 0 : sp.color) + "22", color: sp === null || sp === void 0 ? void 0 : sp.color, border: `1px solid ${sp === null || sp === void 0 ? void 0 : sp.color}44` } }, sp === null || sp === void 0 ? void 0 : sp.name),
                     React.createElement("span", { className: "badge", style: { background: "rgba(255,255,255,0.05)", color: "var(--muted)", border: "1px solid var(--border2)" } }, phase === null || phase === void 0 ? void 0 : phase.name))),
@@ -2196,7 +2200,42 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                 React.createElement("div", null,
                     React.createElement("lbl", null, "Observa\u00E7\u00F5es"),
                     React.createElement("input", { className: "inp", placeholder: "Comportamento, a\u00E7\u00E3o...", value: feedForm.obs, onChange: e => setFeedForm(p => ({ ...p, obs: e.target.value })) }))),
-            React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, fontSize: 14 }, onClick: handleSave }, "\uD83D\uDCBE Salvar Registro do Dia"))));
+            React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, fontSize: 14 }, onClick: handleSave }, "\uD83D\uDCBE Salvar Registro do Dia"),
+        React.createElement("div", { className: "card", style: { padding: 16, marginTop: 4 } },
+            React.createElement("div", { className: "section-hdr", style: { marginBottom: 12 } }, "\uD83D\uDCCA \u00DAltimos 7 dias"),
+            (function() {
+                var entries = Object.entries(tl).sort(function(a,b){ return b[0]>a[0]?1:-1; }).slice(0,7);
+                if (!entries.length) return React.createElement("div", { style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:12} }, "Nenhum registro ainda.");
+                return React.createElement("div", { style:{display:"flex",flexDirection:"column",gap:6} },
+                    entries.map(function(entry) {
+                        var date = entry[0], d = entry[1];
+                        var readings = d.readings || [];
+                        var o2vals = readings.map(function(r){ return r.o2; }).filter(Boolean);
+                        var minO2 = o2vals.length ? Math.min.apply(null, o2vals.map(parseFloat)) : null;
+                        var fedSacos = d.feedGiven || (d.feedGivenKg ? (d.feedGivenKg/25).toFixed(3) : 0);
+                        var isToday = date === activeDate;
+                        return React.createElement("div", { key: date, style:{
+                            background: isToday ? "rgba(14,165,233,0.08)" : "rgba(255,255,255,0.02)",
+                            border: isToday ? "1px solid rgba(14,165,233,0.25)" : "1px solid var(--border)",
+                            borderRadius: 8, padding: "8px 12px",
+                            display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap"
+                        }, onClick: function(){ setActiveDate(date); } },
+                            React.createElement("span", { style:{fontFamily:"var(--mono)",fontSize:12,color:"var(--muted)",flexShrink:0} }, date),
+                            minO2 !== null && React.createElement("span", { style:{fontSize:12, color: minO2 < (sp && sp.minO2 || 5) ? "var(--red)" : "var(--green)"} },
+                                "O\u2082 ", minO2.toFixed(1), " mg/L"
+                            ),
+                            fedSacos > 0 && React.createElement("span", { style:{fontSize:12,color:"var(--muted)"} },
+                                "Ra\u00E7\u00E3o: ", parseFloat(fedSacos).toFixed(2), " sc"
+                            ),
+                            d.mortality > 0 && React.createElement("span", { style:{fontSize:12,color:"var(--red)"} },
+                                "\u2620\uFE0F ", d.mortality, " mort."
+                            ),
+                            isToday && React.createElement("span", { style:{fontSize:10,color:"var(--accent)",fontWeight:700} }, "hoje")
+                        );
+                    })
+                );
+            })()
+        ))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // BIOMETRIA TAB
@@ -3795,7 +3834,8 @@ function RelatoriosModal({ onClose }) {
         @media print{body{padding:14px;}button{display:none!important;}}
       </style>
     </head><body>
-    <div style="text-align:right;margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px;">
+      <button onclick="window.close()" style="background:#666;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;">← Fechar</button>
       <button onclick="window.print()" style="background:#1a3a6a;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;">🖨️ Imprimir / Salvar PDF</button>
     </div>
     ${html}
