@@ -337,7 +337,7 @@ const CSS = `
   --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#a78bfa;
   --font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
 }
-body{background:var(--navy);color:var(--text);font-family:var(--font);min-height:100vh;}body.modal-open{overflow:hidden;position:fixed;width:100%;}
+body{background:var(--navy);color:var(--text);font-family:var(--font);min-height:100vh;}*{touch-action:pan-x pan-y;-ms-touch-action:pan-x pan-y;}body.modal-open{overflow:hidden;position:fixed;width:100%;}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:#1e3a5a;border-radius:4px}
 input,select,textarea{outline:none;font-family:var(--font);font-size:16px;}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;}
@@ -2204,6 +2204,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
         React.createElement("div", { className: "card", style: { padding: 16, marginTop: 4 } },
             React.createElement("div", { className: "section-hdr", style: { marginBottom: 12 } }, "\uD83D\uDCCA \u00DAltimos 7 dias"),
             (function() {
+                var tl = (logs && logs[tank.id]) || {};
                 var entries = Object.entries(tl).sort(function(a,b){ return b[0]>a[0]?1:-1; }).slice(0,7);
                 if (!entries.length) return React.createElement("div", { style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:12} }, "Nenhum registro ainda.");
                 return React.createElement("div", { style:{display:"flex",flexDirection:"column",gap:6} },
