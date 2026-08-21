@@ -407,7 +407,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .kpi-chip .lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
 
 /* ── PAGE PADDING FOR BOTTOM BAR ── */
-.page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));padding-top:8px;}
+.page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));padding-top:calc(52px + env(safe-area-inset-top, 0px) + 8px);}
 
 /* ── FULL WIDTH GRID ON MOBILE ── */
 @media(max-width:600px){
@@ -1006,23 +1006,34 @@ function App() {
         }));
     }
     function addStockIn(nf) {
-        // nf: { bags, costPerBag, supplier, nfNumber, feedType, feedBrand, date, payMethod, totalValue, source }
         const bags = parseInt(nf.bags) || 0;
         const cpp = parseFloat(nf.costPerBag) || 0;
-        setStock(prev => ({
-            ...prev,
-            bags: prev.bags + bags,
+        // Clean internal form fields before saving
+        var entry = {
+            id: Math.random().toString(36).slice(2, 9),
+            type: "in",
+            bags: bags,
             costPerBag: cpp,
-            history: [...prev.history, {
-                    ...nf,
-                    id: Math.random().toString(36).slice(2, 9),
-                    type: "in",
-                    bags,
-                    costPerBag: cpp,
-                    total: nf.totalValue || bags * cpp,
-                    registeredAt: new Date().toISOString(),
-                }]
-        }));
+            total: nf.totalValue || bags * cpp,
+            registeredAt: new Date().toISOString(),
+            supplier: nf.supplier || "",
+            nfNumber: nf.nfNumber || "",
+            feedType: nf.feedType || "",
+            feedBrand: nf.feedBrand || "",
+            proteinPct: nf.proteinPct || "",
+            date: nf.date || "",
+            payMethod: nf.payMethod || "",
+            obs: nf.obs || "",
+            source: nf.source || "manual"
+        };
+        setStock(function(prev) {
+            var prevHistory = Array.isArray(prev.history) ? prev.history : [];
+            return Object.assign({}, prev, {
+                bags: (prev.bags || 0) + bags,
+                costPerBag: cpp,
+                history: [...prevHistory, entry]
+            });
+        });
     }
     function consumeStock(bags, tankId, note) {
         setStock(prev => ({
@@ -3324,7 +3335,8 @@ function StockInModal({ onClose }) {
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
     return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", overflowY: "auto", ...useSwipeToClose(onClose) } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "90vh", overflowY: "auto", margin: "auto", marginTop: 8, marginBottom: 8 } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, maxHeight: "90vh", margin: "auto", marginTop: 8, marginBottom: 8, display: "flex", flexDirection: "column", padding: 0, overflow: "hidden" } },
+            React.createElement("div", { style: { flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: 26, paddingBottom: 16 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("div", null,
                     React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\uD83D\uDCE5 Entrada de Ra\u00E7\u00E3o"),
@@ -3495,7 +3507,10 @@ function StockInModal({ onClose }) {
                         React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, i.l),
                         React.createElement("div", { style: { fontFamily: "var(--mono)", fontWeight: 700, fontSize: 13, marginTop: 2, color: "var(--text)" } }, i.v))))))),
                 React.createElement("div", { style: { position: "sticky", bottom: 0, background: "var(--dark)", padding: "12px 0 4px", marginTop: 8 } },
-                    React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque")))))));
+                    )),  
+            React.createElement("div", { style: { flexShrink: 0, padding: "14px 26px 20px", borderTop: "1px solid var(--border)", background: "var(--dark)" } },
+                React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque")
+            ))))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
