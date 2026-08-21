@@ -398,7 +398,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .mob-section{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:4px 18px;}
 
 /* ── BOTTOM TAB BAR ── */
-.bottom-bar{position:fixed!important;bottom:0!important;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:999;padding-bottom:env(safe-area-inset-bottom,0px);transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0);will-change:transform;}
+.bottom-bar{position:fixed!important;bottom:0!important;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:999;padding-bottom:env(safe-area-inset-bottom,0px);transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0);will-change:transform;height:calc(56px + env(safe-area-inset-bottom,0px));}
 .pwa-top-fix{padding-top:env(safe-area-inset-top,0px)!important;height:calc(52px + env(safe-area-inset-top,0px))!important;}
 @supports(padding-top:env(safe-area-inset-top)){nav{padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top));}}
 .bottom-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;gap:4px;transition:color .15s;}
@@ -853,6 +853,7 @@ function App() {
     const [showUserMgmt, setShowUserMgmt] = (0, useState)(false);
     // NOTE: ALL hooks must be called before any conditional return (React rules)
     const [tanks, setTanks] = (0, useState)(function(){ return load("aq_tanks", []); });
+    const [dbLoaded, setDbLoaded] = (0, useState)(false);
     const [logs, setLogs] = (0, useState)({});
     const [expenses, setExpenses] = (0, useState)({});
     const [stock, setStock] = (0, useState)(function() {
@@ -906,6 +907,7 @@ function App() {
         console.warn("Load from DB failed, using local:", e);
       } finally {
         setSyncing(false);
+        setDbLoaded(true);
       }
     }
 
@@ -1120,7 +1122,7 @@ function App() {
         activeTank, openTank, goHome, alerts, notify,
         capex, setCapex, opexG, setOpexG, schedule, setSchedule,
         activeDate, setActiveDate, notifPerm, requestNotif,
-        waterTimes, setWaterTimes, syncing, lastSync,
+        waterTimes, setWaterTimes, syncing, lastSync, dbLoaded,
     };
     // ── Auth guard — must be after all hooks ──
     if (!session) {
@@ -1256,7 +1258,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
 // DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════════
 function Dashboard({ onEdit }) {
-    const { tanks, logs, alerts, stock, expenses, units, openTank } = useApp();
+    const { tanks, logs, alerts, stock, expenses, units, openTank, dbLoaded } = useApp();
     const [activeTab, setActiveTab] = (0, useState)("tanques");
     const totalFish = tanks.reduce((s, t) => s + (t.fishCount || 0), 0);
     const totalBiomass = tanks.reduce((s, t) => s + ((t.fishCount || 0) * (t.avgWeightG || 0) / 1000), 0);
@@ -1311,10 +1313,10 @@ function Dashboard({ onEdit }) {
                     t.id === "alertas" && alerts.length > 0 ? ` (${alerts.length})` : "")));
         })),
         activeTab === "tanques" && (React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 14 } }, tanks.length === 0 ? (React.createElement("div", { style: { gridColumn: "1/-1", textAlign: "center", padding: "60px 20px", color: "var(--muted)" } },
-            React.createElement("div", { style: { fontSize: 52, marginBottom: 12 } }, "\uD83C\uDF0A"),
+            React.createElement("div", { style: { fontSize: 52, marginBottom: 12 } }, dbLoaded ? "\uD83C\uDF0A" : "\u23F3"),
             React.createElement("p", { style: { fontSize: 15 } },
-                "Nenhum tanque. Clique em ",
-                React.createElement("strong", { style: { color: "var(--accent)" } }, "+ Novo Tanque")))) : tankRanking.map(t => (React.createElement(TankCard, { key: t.id, tank: t, onOpen: () => openTank(t.id), onEdit: () => onEdit(t) }))))),
+                dbLoaded ? "Nenhum tanque. Clique em " : "Carregando seus tanques...",
+                dbLoaded && React.createElement("strong", { style: { color: "var(--accent)" } }, "+ Novo Tanque")))) : tankRanking.map(t => (React.createElement(TankCard, { key: t.id, tank: t, onOpen: () => openTank(t.id), onEdit: () => onEdit(t) }))))),
         activeTab === "alertas" && React.createElement(AlertsPanel, null),
         activeTab === "ranking" && React.createElement(RankingPanel, { ranking: tankRanking }),
         activeTab === "feedtable" && React.createElement(FeedTablePanel, null),
@@ -3379,7 +3381,7 @@ function StockInModal({ onClose }) {
                     " \u00B7 ",
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", overflowY: "auto", ...useSwipeToClose(onClose) } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "env(safe-area-inset-top, 12px) 16px 16px" }, ...useSwipeToClose(onClose) },
         React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "88vh", overflowY: "auto", margin: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("div", null,
