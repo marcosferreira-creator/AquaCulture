@@ -1,4 +1,16 @@
-// AquaCulture v2.8 - 
+// AquaCulture v2.9 - 
+// Global error handler to catch Script errors
+window.onerror = function(msg, src, line, col, err) {
+    if (msg && msg !== "Script error.") {
+        alert("ERRO CAPTURADO:\n" + msg + "\nLinha: " + line + "\n" + (err ? err.stack : ""));
+    }
+    return false;
+};
+window.addEventListener("unhandledrejection", function(e) {
+    alert("ERRO PROMISE:\n" + (e.reason ? (e.reason.message || String(e.reason)) : String(e)));
+});
+
+
     const { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } = React;
     const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } = Recharts;
 
