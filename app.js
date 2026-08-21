@@ -3296,7 +3296,11 @@ function StockInModal({ onClose }) {
             return alert("Preencha pelo menos sacos e custo por saco.");
         if (!form.supplier)
             return alert("Informe o fornecedor.");
-        addStockIn({ ...form, bags, costPerBag: cpp, totalValue: total, source: pdfName ? "pdf" : "manual" });
+        var cleanForm = {};
+        Object.keys(form).forEach(function(k) {
+            if (k !== "_allItems" && k !== "_itemIndex") cleanForm[k] = form[k];
+        });
+        addStockIn(Object.assign({}, cleanForm, { bags: bags, costPerBag: cpp, totalValue: total, source: pdfName ? "pdf" : "manual" }));
         setConfirmed(true);
     }
     if (confirmed)
@@ -3490,7 +3494,8 @@ function StockInModal({ onClose }) {
                     ].map(i => (React.createElement("div", { key: i.l, style: { background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: "8px 10px" } },
                         React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, i.l),
                         React.createElement("div", { style: { fontFamily: "var(--mono)", fontWeight: 700, fontSize: 13, marginTop: 2, color: "var(--text)" } }, i.v))))))),
-                React.createElement("button", { className: "btn btn-p", style: { padding: 13, fontSize: 14 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque"))))));
+                React.createElement("div", { style: { position: "sticky", bottom: 0, background: "var(--dark)", padding: "12px 0 4px", marginTop: 8 } },
+                    React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque")))))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
