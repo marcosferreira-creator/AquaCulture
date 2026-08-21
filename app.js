@@ -843,7 +843,11 @@ function App() {
     const [tanks, setTanks] = (0, useState)(function(){ return load("aq_tanks", []); });
     const [logs, setLogs] = (0, useState)({});
     const [expenses, setExpenses] = (0, useState)({});
-    const [stock, setStock] = (0, useState)(() => load("aq_stock", { bags: 0, costPerBag: 100, history: [], minAlert: 20 }));
+    const [stock, setStock] = (0, useState)(function() {
+        var s = load("aq_stock", { bags: 0, costPerBag: 100, history: [], minAlert: 20 });
+        if (!Array.isArray(s.history)) s.history = [];
+        return s;
+    });
     const [cycles, setCycles] = (0, useState)(() => load("aq_cycles", {}));
     const [capex, setCapex] = (0, useState)([]);
     const [opexG, setOpexG] = (0, useState)([]);
@@ -879,7 +883,10 @@ function App() {
         if (dbTanks && dbTanks.length > 0) setTanks(dbTanks);
         if (dbLogs  && dbLogs !== null && Object.keys(dbLogs).length > 0) setLogs(dbLogs);
         if (dbExp   && dbExp  !== null && Object.keys(dbExp).length  > 0) setExpenses(dbExp);
-        if (dbStock && dbStock.bags !== undefined) setStock(dbStock);
+        if (dbStock && dbStock.bags !== undefined) {
+            if (!Array.isArray(dbStock.history)) dbStock.history = [];
+            setStock(dbStock);
+        }
         if (dbCapex && dbCapex !== null && dbCapex.length > 0) setCapex(dbCapex);
         if (dbOpex  && dbOpex  !== null && dbOpex.length  > 0) setOpexG(dbOpex);
         setLastSync(new Date());
@@ -911,7 +918,16 @@ function App() {
 (0, useEffect)(() => { save("aq_tanks", tanks); }, [tanks]);
     (0, useEffect)(() => { save("aq_logs", logs); }, [logs]);
     (0, useEffect)(() => { save("aq_exp", expenses); }, [expenses]);
-    (0, useEffect)(() => { save("aq_stock", stock); }, [stock]);
+    (0, useEffect)(function() {
+        if (stock) {
+            var safeStock = Object.assign({}, stock, {
+                history: Array.isArray(stock.history) ? stock.history : [],
+                bags: stock.bags || 0
+            });
+            save("aq_stock", safeStock);
+            if (safeStock.bags > 0 || safeStock.history.length > 0) DB.saveStock(safeStock);
+        }
+    }, [stock]);
     (0, useEffect)(() => { save("aq_cycles", cycles); }, [cycles]);
     (0, useEffect)(() => { save("aq_capex", capex); }, [capex]);
     (0, useEffect)(() => { save("aq_opex_g", opexG); }, [opexG]);
@@ -1036,11 +1052,13 @@ function App() {
         });
     }
     function consumeStock(bags, tankId, note) {
-        setStock(prev => ({
-            ...prev,
-            bags: Math.max(0, prev.bags - bags),
-            history: [...prev.history, { date: today(), type: "out", bags, tankId, note }]
-        }));
+        setStock(function(prev) {
+            var prevHistory = Array.isArray(prev.history) ? prev.history : [];
+            return Object.assign({}, prev, {
+                bags: Math.max(0, (prev.bags || 0) - bags),
+                history: [...prevHistory, { date: today(), type: "out", bags: bags, tankId: tankId, note: note }]
+            });
+        });
     }
     // Alerts computation
     const alerts = [];
@@ -1135,14 +1153,14 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                 dangerCount)),
             React.createElement("div", { style: { background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, padding: "4px 9px", fontSize: 11, fontWeight: 700, color: "#4ade80", fontFamily: "var(--mono)", whiteSpace: "nowrap" } },
                 "\uD83D\uDCE6 ",
-                stock.bags)),
-            React.createElement("div", {
-              title: lastSync ? "\u00DAltima sync: " + lastSync.toLocaleTimeString("pt-BR") : "Sincronizando...",
-              style: { width: 8, height: 8, borderRadius: "50%", flexShrink: 0, marginLeft: 2,
-                background: syncing ? "#f59e0b" : lastSync ? "#22c55e" : "#5a7a9a",
-                boxShadow: syncing ? "0 0 6px #f59e0b" : lastSync ? "0 0 5px #22c55e88" : "none"
-              }
-            }),
+                stock.bags,
+                React.createElement("span", {
+                  title: lastSync ? "\u00DAltima sync: " + lastSync.toLocaleTimeString("pt-BR") : "Sincronizando...",
+                  style: { width: 7, height: 7, borderRadius: "50%", display: "inline-block", marginLeft: 4, verticalAlign: "middle",
+                    background: syncing ? "#f59e0b" : lastSync ? "#22c55e" : "#5a7a9a"
+                  }
+                }
+            ))),
         open && (React.createElement("div", { className: "mob-menu slide", onClick: () => setOpen(false) },
             React.createElement("div", { onClick: e => e.stopPropagation(), style: { display: "flex", flexDirection: "column", gap: 6 } },
                 React.createElement("div", { className: "mob-section" }, "Navega\u00E7\u00E3o"),
