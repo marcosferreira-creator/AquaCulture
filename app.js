@@ -407,7 +407,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .kpi-chip .lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
 
 /* ── PAGE PADDING FOR BOTTOM BAR ── */
-.page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));padding-top:calc(52px + env(safe-area-inset-top, 0px) + 8px);}
+.page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));padding-top:8px;}
 
 /* ── FULL WIDTH GRID ON MOBILE ── */
 @media(max-width:600px){
@@ -3321,16 +3321,31 @@ function StockInModal({ onClose }) {
         return { supplier, nfNumber, date, feedType, feedBrand, proteinPct, bags, totalValue, costPerBag, payMethod, obs: "" };
     }
     function handleConfirm() {
-        if (!bags || !cpp)
-            return alert("Preencha pelo menos sacos e custo por saco.");
-        if (!form.supplier)
-            return alert("Informe o fornecedor.");
-        var cleanForm = {};
-        Object.keys(form).forEach(function(k) {
-            if (k !== "_allItems" && k !== "_itemIndex") cleanForm[k] = form[k];
-        });
-        addStockIn(Object.assign({}, cleanForm, { bags: bags, costPerBag: cpp, totalValue: total, source: pdfName ? "pdf" : "manual" }));
-        setConfirmed(true);
+        try {
+            if (!bags || !cpp)
+                return alert("Preencha pelo menos sacos e custo por saco.");
+            if (!form.supplier)
+                return alert("Informe o fornecedor.");
+            var cleanEntry = {
+                bags: bags,
+                costPerBag: cpp,
+                totalValue: total || bags * cpp,
+                supplier: form.supplier || "",
+                nfNumber: form.nfNumber || "",
+                feedType: form.feedType || "",
+                feedBrand: form.feedBrand || "",
+                proteinPct: form.proteinPct || "",
+                date: form.date || today(),
+                payMethod: form.payMethod || "PIX",
+                obs: form.obs || "",
+                source: pdfName ? "pdf" : "manual"
+            };
+            addStockIn(cleanEntry);
+            setConfirmed(true);
+        } catch(err) {
+            console.error("Erro ao confirmar estoque:", err);
+            alert("Erro ao salvar: " + (err.message || String(err)));
+        }
     }
     if (confirmed)
         return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
@@ -3353,8 +3368,7 @@ function StockInModal({ onClose }) {
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
     return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", overflowY: "auto", ...useSwipeToClose(onClose) } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, maxHeight: "90vh", margin: "auto", marginTop: 8, marginBottom: 8, display: "flex", flexDirection: "column", padding: 0, overflow: "hidden" } },
-            React.createElement("div", { style: { flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: 26, paddingBottom: 16 } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "88vh", overflowY: "auto", margin: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("div", null,
                     React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\uD83D\uDCE5 Entrada de Ra\u00E7\u00E3o"),
@@ -3524,9 +3538,7 @@ function StockInModal({ onClose }) {
                     ].map(i => (React.createElement("div", { key: i.l, style: { background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: "8px 10px" } },
                         React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, i.l),
                         React.createElement("div", { style: { fontFamily: "var(--mono)", fontWeight: 700, fontSize: 13, marginTop: 2, color: "var(--text)" } }, i.v))))))),
-            React.createElement("div", { style: { flexShrink: 0, padding: "14px 26px 20px", borderTop: "1px solid var(--border)", background: "var(--dark)" } },
-                React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque")
-            )))))));
+            React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 13, fontSize: 14, marginTop: 8 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque"))))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
