@@ -1669,7 +1669,19 @@ function StockPanel() {
                         React.createElement("span", { style: { fontFamily: "var(--mono)", fontWeight: 600 } },
                             bags,
                             " sacos"))));
-                })())),
+                })(),
+                React.createElement("button", {
+                    onClick: function() {
+                        if (confirm("Zerar saldo para 0 sacos?\nO histórico é mantido.")) {
+                            setStock(function(prev) {
+                                var u = Object.assign({}, prev, { bags: 0 });
+                                DB.saveStock(u);
+                                return u;
+                            });
+                        }
+                    },
+                    style: { marginTop: 14, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "8px 16px", cursor: "pointer", color: "#f87171", fontSize: 13, fontFamily: "var(--font)", width: "100%", textAlign: "center" }
+                }, "\uD83D\uDDD1\uFE0F Zerar saldo do estoque"))),
         React.createElement("div", { className: "card", style: { padding: 18 } },
             React.createElement("div", { className: "section-hdr" }, "\uD83D\uDCCB Hist\u00F3rico de Movimenta\u00E7\u00F5es"),
             React.createElement("div", { className: "table-scroll" },
@@ -3394,8 +3406,8 @@ function StockInModal({ onClose }) {
                     " \u00B7 ",
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "hidden" } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "88vh", overflowY: "auto", WebkitOverflowScrolling: "touch", margin: "auto", marginTop: 8, marginBottom: 8 } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 12, paddingTop: "max(env(safe-area-inset-top, 12px), 12px)", overflowY: "hidden" } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "calc(100dvh - 40px)", overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", margin: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("div", null,
                     React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\uD83D\uDCE5 Entrada de Ra\u00E7\u00E3o"),
@@ -4223,3 +4235,4 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
