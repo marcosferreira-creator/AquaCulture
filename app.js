@@ -4193,4 +4193,10 @@ function RelatoriosModal({ onClose }) {
                                     React.createElement("td", { style: { fontFamily: "var(--mono)" } },
                                         ((t.fishCount || 0) * (t.avgWeightG || 0) / 1000).toFixed(1),
                                         " kg")));
-                
+                            }),
+                            tanks.length === 0 && React.createElement("tr", null,
+                                React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhum tanque"))))))))));
+}
+
+    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
