@@ -3406,19 +3406,17 @@ function StockInModal({ onClose }) {
                     " \u00B7 ",
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
-            React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: "var(--dark)" } },
+    const headerEl = React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: "var(--dark)" } },
                 React.createElement("div", null,
                     React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\uD83D\uDCE5 Entrada de Ra\u00E7\u00E3o"),
                     pdfName && React.createElement("div", { style: { fontSize: 11, color: "var(--accent)", marginTop: 3 } },
                         "\uD83D\uDCC4 ",
                         pdfName)),
-                React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 20 } }, "\u2715")),
-            React.createElement("div", { style: { display: "flex", gap: 6, padding: "14px 18px 0", flexShrink: 0 } },
+                React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 20 } }, "\u2715"));
+    const tabsEl = React.createElement("div", { style: { display: "flex", gap: 6, marginBottom: 20 } },
                 React.createElement("button", { className: `tab-btn ${tab === "manual" ? "active" : ""}`, onClick: () => setTab("manual") }, "\u270F\uFE0F Digitar Manualmente"),
-                React.createElement("button", { className: `tab-btn ${tab === "upload" ? "active" : ""}`, onClick: () => setTab("upload") }, "\uD83D\uDCC4 Upload Nota Fiscal (PDF)")),
-            React.createElement("div", { style: { flex: 1, overflowY: "auto", padding: 20 } },
-            tab === "upload" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
+                React.createElement("button", { className: `tab-btn ${tab === "upload" ? "active" : ""}`, onClick: () => setTab("upload") }, "\uD83D\uDCC4 Upload Nota Fiscal (PDF)"));
+    const uploadEl = tab === "upload" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
                 React.createElement("input", { ref: fileRef, type: "file", accept: ".pdf,.jpg,.jpeg,.png,.heic,.heif,.webp,application/pdf,image/*", style: { display: "none" }, onChange: e => {
                         const file = e.target.files[0];
                         if (file) {
@@ -3498,8 +3496,8 @@ function StockInModal({ onClose }) {
                 React.createElement("div", { style: { fontSize: 12, color: "var(--muted)", padding: "10px 14px", background: "rgba(255,255,255,0.025)", borderRadius: 9 } },
                     "\uD83D\uDCF7 ",
                     React.createElement("strong", null, "Aceita foto do iPhone!"),
-                    " Tire foto da nota com a c\u00E2mera, selecione a imagem e a IA l\u00EA. Tamb\u00E9m aceita PDF."))),
-            tab === "manual" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
+                    " Tire foto da nota com a c\u00E2mera, selecione a imagem e a IA l\u00EA. Tamb\u00E9m aceita PDF.")));
+    const manualEl = tab === "manual" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
                 parsed && !parsed._error && (React.createElement("div", { style: { background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)", borderRadius: 9, padding: "10px 14px", fontSize: 12, color: "var(--accent)" } },
                     "\uD83D\uDCC4 Dados extra\u00EDdos do PDF ",
                     React.createElement("strong", null, pdfName),
@@ -3576,10 +3574,14 @@ function StockInModal({ onClose }) {
                         { l: "Fornecedor", v: form.supplier || "—" },
                     ].map(i => (React.createElement("div", { key: i.l, style: { background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: "8px 10px" } },
                         React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, i.l),
-                        React.createElement("div", { style: { fontFamily: "var(--mono)", fontWeight: 700, fontSize: 13, marginTop: 2, color: "var(--text)" } }, i.v)))))))),
-            React.createElement("div", { style: { flexShrink: 0, padding: "12px 26px 16px", borderTop: "1px solid var(--border)", background: "var(--dark)" } },
-                React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque")
-            )))));
+                        React.createElement("div", { style: { fontFamily: "var(--mono)", fontWeight: 700, fontSize: 13, marginTop: 2, color: "var(--text)" } }, i.v)))))))));
+
+    const footerEl = tab === "manual" && React.createElement("div", { style: { flexShrink: 0, padding: "12px 26px 16px", borderTop: "1px solid var(--border)", background: "var(--dark)" } },
+        React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque"));
+
+    const scrollEl = React.createElement("div", { style: { flex: 1, overflowY: "auto", padding: 20 } }, uploadEl, manualEl);
+
+    return React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } }, headerEl, tabsEl, scrollEl, footerEl);
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
@@ -4236,5 +4238,4 @@ function RelatoriosModal({ onClose }) {
                                 React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhum tanque"))))))))));
 }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-  
+    ReactDOM.createRoot(document.getElement
