@@ -391,10 +391,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .mob-section{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:4px 18px;}
 
 /* ── BOTTOM TAB BAR ── */
-.bottom-bar{position:fixed!important;bottom:0!important;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:999;padding-bottom:env(safe-area-inset-bottom,0px);transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0);will-change:transform;height:calc(56px + env(safe-area-inset-bottom,0px));}
+.bottom-bar{position:fixed!important;bottom:0!important;left:0;right:0;background:rgba(6,14,26,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:999;padding-bottom:0;transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0);will-change:transform;height:52px;}
 .pwa-top-fix{padding-top:env(safe-area-inset-top,0px)!important;height:calc(52px + env(safe-area-inset-top,0px))!important;}
 @supports(padding-top:env(safe-area-inset-top)){nav{padding-top:env(safe-area-inset-top);height:calc(52px + env(safe-area-inset-top));}}
-.bottom-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;gap:4px;transition:color .15s;}
+.bottom-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--font);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;gap:4px;transition:color .15s;}
 .bottom-tab .ico{font-size:20px;line-height:1;}
 .bottom-tab.active{color:var(--accent);}
 .bottom-tab.active .ico{transform:scale(1.1);}
@@ -412,7 +412,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .kpi-chip .lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
 
 /* ── PAGE PADDING FOR BOTTOM BAR ── */
-.page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));padding-top:8px;padding-left:14px;padding-right:14px;}
+.page-content{padding-bottom:72px;padding-top:8px;padding-left:14px;padding-right:14px;}
 
 /* ── FULL WIDTH GRID ON MOBILE ── */
 @media(max-width:600px){
@@ -425,8 +425,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 @supports(padding-top:env(safe-area-inset-top)){
   nav{padding-top:env(safe-area-inset-top)!important;height:calc(52px + env(safe-area-inset-top))!important;}
   .mob-menu{padding-top:calc(env(safe-area-inset-top) + 64px)!important;}
-  .bottom-bar{padding-bottom:env(safe-area-inset-bottom)!important;bottom:0!important;}
-  .page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom))!important;padding-left:14px;padding-right:14px;}
+  .bottom-bar{height:52px!important;padding-bottom:0!important;bottom:0!important;}
+  .page-content{padding-bottom:72px!important;padding-left:14px;padding-right:14px;}
 }
 /* Keep bottom bar fixed even when iOS keyboard opens */
 @media screen and (max-height: 500px) {
@@ -3157,7 +3157,6 @@ const EMPTY_NF = {
 function StockInModal({ onClose }) {
 
   useLockBodyScroll();
-  var swipeRef = useSwipeToClose(onClose);
     const { addStockIn } = useApp();
     const [tab, setTab] = (0, useState)("manual"); // manual | upload
     const [form, setForm] = (0, useState)({ ...EMPTY_NF, date: today() });
@@ -3387,7 +3386,7 @@ function StockInModal({ onClose }) {
         }
     }
     if (confirmed)
-        return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
+        return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
             React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 420, padding: 32, textAlign: "center", marginTop: 8 } },
                 React.createElement("div", { style: { fontSize: 52, marginBottom: 16 } }, "\u2705"),
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 20, marginBottom: 8 } }, "Estoque Atualizado!"),
@@ -3407,7 +3406,8 @@ function StockInModal({ onClose }) {
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
     return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 12, paddingTop: "max(env(safe-area-inset-top, 12px), 12px)", overflowY: "hidden" } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "calc(100dvh - 40px)", overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", margin: "auto", marginTop: 8, marginBottom: 8 } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 520, maxHeight: "calc(100dvh - 32px)", display: "flex", flexDirection: "column", margin: "auto", marginTop: 8, marginBottom: 8, padding: 0, overflow: "hidden" } },
+            React.createElement("div", { style: { flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: 26, paddingBottom: 16 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("div", null,
                     React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\uD83D\uDCE5 Entrada de Ra\u00E7\u00E3o"),
@@ -3577,7 +3577,10 @@ function StockInModal({ onClose }) {
                     ].map(i => (React.createElement("div", { key: i.l, style: { background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: "8px 10px" } },
                         React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, i.l),
                         React.createElement("div", { style: { fontFamily: "var(--mono)", fontWeight: 700, fontSize: 13, marginTop: 2, color: "var(--text)" } }, i.v))))))),
-            React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 13, fontSize: 14, marginTop: 8 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque"))))));
+            React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 13, fontSize: 14, marginTop: 8 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque"))),
+            React.createElement("div", { style: { flexShrink: 0, padding: "12px 26px 16px", borderTop: "1px solid var(--border)", background: "var(--dark)" } },
+                React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque")
+            )))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
@@ -4235,4 +4238,3 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-  
