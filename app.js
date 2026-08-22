@@ -911,9 +911,9 @@ function App() {
       if (document.visibilityState === "visible") loadFromDB(true);
     }
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("pageshow", function(e) { if (e.persisted) loadFromDB(true); });
 
     return function() {
-      clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
@@ -1121,7 +1121,7 @@ function App() {
 
     return (React.createElement(Ctx.Provider, { value: ctx },
         React.createElement("style", null, CSS),
-        React.createElement(Nav, { page: page, goHome: goHome, session: session, role: role, onNewTank: () => setShowNewTank(true), onSettings: () => setShowSettings(true), onFinanceiro: () => setShowFinanceiro(true), onRelatorios: () => setShowRelatorios(true), alerts: alerts, onStockIn: () => setShowStockIn(true), stock: stock, onLogout: () => { saveSession(null); setSession(null); }, onUserMgmt: () => setShowUserMgmt(true), syncing: syncing, lastSync: lastSync }),
+        React.createElement(Nav, { page: page, goHome: goHome, session: session, role: role, onNewTank: () => setShowNewTank(true), onSettings: () => setShowSettings(true), onFinanceiro: () => setShowFinanceiro(true), onRelatorios: () => setShowRelatorios(true), alerts: alerts, onStockIn: () => setShowStockIn(true), stock: stock, onLogout: () => { saveSession(null); setSession(null); }, onUserMgmt: () => setShowUserMgmt(true), syncing: syncing, lastSync: lastSync, dbLoaded: dbLoaded }),
         React.createElement("div", { style: { maxWidth: 1280, margin: "0 auto", padding: "14px 14px" } },
             page === "dashboard" && React.createElement(Dashboard, { onEdit: t => { setTankId(t.id); setShowEditTank(true); } }),
             page === "tank" && activeTank && (React.createElement(TankPage, { onEdit: () => setShowEditTank(true) }))),
@@ -1136,7 +1136,7 @@ function App() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // NAV — mobile-first com menu hambúrguer
 // ═══════════════════════════════════════════════════════════════════════════════
-function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, alerts, onStockIn, stock, session, role, onLogout, onUserMgmt, syncing, lastSync }) {
+function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, alerts, onStockIn, stock, session, role, onLogout, onUserMgmt, syncing, lastSync, dbLoaded }) {
   var _role = role || ROLES.admin;
     const [open, setOpen] = (0, useState)(false);
     const dangerCount = alerts.filter(a => a.level === "danger").length;
@@ -1160,7 +1160,7 @@ function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, 
                 React.createElement("span", {
                   title: lastSync ? "\u00DAltima sync: " + lastSync.toLocaleTimeString("pt-BR") : "Sincronizando...",
                   style: { width: 7, height: 7, borderRadius: "50%", display: "inline-block", marginLeft: 4, verticalAlign: "middle",
-                    background: syncing ? "#f59e0b" : lastSync ? "#22c55e" : "#5a7a9a"
+                    background: syncing ? "#f59e0b" : (lastSync || dbLoaded) ? "#22c55e" : "#64748b"
                   }
                 }
             ))),
@@ -1675,7 +1675,8 @@ function StockPanel() {
                         React.createElement("th", null, "Sacos"),
                         React.createElement("th", null, "R$/saco"),
                         React.createElement("th", null, "Total"),
-                        React.createElement("th", null, "Pagamento"))),
+                        React.createElement("th", null, "Pagamento"),
+                        React.createElement("th", null, ""))),
                 React.createElement("tbody", null,
                     [...stock.history].reverse().slice(0, 50).map((h, i) => (React.createElement("tr", { key: i },
                         React.createElement("td", { style: { fontFamily: "var(--mono)", fontSize: 12 } }, h.date),
@@ -1689,7 +1690,21 @@ function StockPanel() {
                         React.createElement("td", { style: { fontFamily: "var(--mono)", fontWeight: 600 } }, h.bags),
                         React.createElement("td", { style: { fontFamily: "var(--mono)", fontSize: 12 } }, h.costPerBag ? fmtBRL(h.costPerBag) : "—"),
                         React.createElement("td", { style: { fontFamily: "var(--mono)", fontWeight: 600, color: "var(--green)" } }, h.total ? fmtBRL(h.total) : "—"),
-                        React.createElement("td", { style: { fontSize: 12, color: "var(--muted)" } }, h.payMethod || "—")))),
+                        React.createElement("td", { style: { fontSize: 12, color: "var(--muted)" } }, h.payMethod || "—"),
+                        React.createElement("td", null,
+                            React.createElement("button", {
+                                onClick: function() {
+                                    if (confirm("Apagar este registro do histórico?")) {
+                                        setStock(function(prev) {
+                                            var newHist = prev.history.filter(function(_, idx) { return idx !== i; });
+                                            DB.saveStock(Object.assign({}, prev, { history: newHist }));
+                                            return Object.assign({}, prev, { history: newHist });
+                                        });
+                                    }
+                                },
+                                style: { background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 6, padding: "3px 8px", cursor: "pointer", color: "#f87171", fontSize: 11, fontFamily: "var(--font)" }
+                            }, "🗑️")
+                        )))),
                     stock.history.length === 0 && React.createElement("tr", null,
                         React.createElement("td", { colSpan: 9, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhuma movimenta\u00E7\u00E3o registrada"))))))));
 }
