@@ -258,10 +258,10 @@ const SP = {
             { name: "Engorda II", minW: 600, maxW: 1500, pct: 0.02, freq: 2, fcr: 2.5, protPct: 28 },
         ],
         feedTable: [
-            { range: "0–50g", pct: "8,0%", freq: "4x/dia", fcr: "2,5 ✦meta", protein: "40%", obs: "Extrusada P (micro)" },
-            { range: "50–200g", pct: "5,0%", freq: "3x/dia", fcr: "2,5 ✦meta", protein: "36%", obs: "Extrusada P" },
-            { range: "200–600g", pct: "3,0%", freq: "2x/dia", fcr: "2,5 ✦meta", protein: "32%", obs: "Extrusada M" },
-            { range: "600–1500g", pct: "2,0%", freq: "2x/dia", fcr: "2,5 ✦meta", protein: "28%", obs: "Extrusada G" },
+            { range: "0–50g", pct: "8,0%", freq: "4x/dia", fcr: "2,5 ✦meta", protein: "40%", obs: "Extrusada 1,5 a 3 mm" },
+            { range: "50–200g", pct: "5,0%", freq: "3x/dia", fcr: "2,5 ✦meta", protein: "36%", obs: "Extrusada 2 a 5 mm" },
+            { range: "200–600g", pct: "3,0%", freq: "2x/dia", fcr: "2,5 ✦meta", protein: "32%", obs: "Extrusada 4 a 6 mm" },
+            { range: "600–1500g", pct: "2,0%", freq: "2x/dia", fcr: "2,5 ✦meta", protein: "28%", obs: "Extrusada 4 a 12 mm" },
         ],
     },
     tambaqui: {
@@ -278,13 +278,13 @@ const SP = {
             { name: "Alevino", minW: 0, maxW: 50, pct: 0.10, freq: 4, fcr: 1.1, protPct: 36 },
             { name: "Juvenil", minW: 50, maxW: 250, pct: 0.06, freq: 3, fcr: 1.3, protPct: 32 },
             { name: "Engorda I", minW: 250, maxW: 700, pct: 0.035, freq: 2, fcr: 1.5, protPct: 28 },
-            { name: "Engorda II", minW: 700, maxW: 2000, pct: 0.025, freq: 2, fcr: 1.7, protPct: 24 },
+            { name: "Engorda II", minW: 700, maxW: 2000, pct: 0.025, freq: 2, fcr: 1.7, protPct: 28 },
         ],
         feedTable: [
-            { range: "0–50g", pct: "10,0%", freq: "4x/dia", fcr: "1,1", protein: "36%", obs: "Extrusada P (micro)" },
-            { range: "50–250g", pct: "6,0%", freq: "3x/dia", fcr: "1,3", protein: "32%", obs: "Extrusada P" },
-            { range: "250–700g", pct: "3,5%", freq: "2x/dia", fcr: "1,5", protein: "28%", obs: "Extrusada M" },
-            { range: "700–2000g", pct: "2,5%", freq: "2x/dia", fcr: "1,7", protein: "24%", obs: "Extrusada G" },
+            { range: "0–50g", pct: "10,0%", freq: "4x/dia", fcr: "1,1", protein: "36%", obs: "Extrusada 2 a 5 mm" },
+            { range: "50–250g", pct: "6,0%", freq: "3x/dia", fcr: "1,3", protein: "32%", obs: "Extrusada 4 a 6 mm" },
+            { range: "250–700g", pct: "3,5%", freq: "2x/dia", fcr: "1,5", protein: "28%", obs: "Extrusada 4 a 12 mm" },
+            { range: "700–2000g", pct: "2,5%", freq: "2x/dia", fcr: "1,7", protein: "28%", obs: "Extrusada 4 a 12 mm" },
         ],
     },
     ilapia: {
@@ -296,13 +296,13 @@ const SP = {
             { name: "Alevino", minW: 0, maxW: 30, pct: 0.10, freq: 5, fcr: 1.0, protPct: 36 },
             { name: "Juvenil", minW: 30, maxW: 150, pct: 0.06, freq: 4, fcr: 1.2, protPct: 32 },
             { name: "Engorda I", minW: 150, maxW: 400, pct: 0.04, freq: 3, fcr: 1.4, protPct: 28 },
-            { name: "Engorda II", minW: 400, maxW: 900, pct: 0.025, freq: 2, fcr: 1.5, protPct: 24 },
+            { name: "Engorda II", minW: 400, maxW: 900, pct: 0.025, freq: 2, fcr: 1.5, protPct: 28 },
         ],
         feedTable: [
-            { range: "0–30g", pct: "10,0%", freq: "5x/dia", fcr: "1,0", protein: "36%", obs: "Extrusada P (micro)" },
-            { range: "30–150g", pct: "6,0%", freq: "4x/dia", fcr: "1,2", protein: "32%", obs: "Extrusada P" },
-            { range: "150–400g", pct: "4,0%", freq: "3x/dia", fcr: "1,4", protein: "28%", obs: "Extrusada M" },
-            { range: "400–900g", pct: "2,5%", freq: "2x/dia", fcr: "1,5", protein: "24%", obs: "Extrusada G" },
+            { range: "0–30g", pct: "10,0%", freq: "5x/dia", fcr: "1,0", protein: "36%", obs: "Extrusada 2 a 5 mm" },
+            { range: "30–150g", pct: "6,0%", freq: "4x/dia", fcr: "1,2", protein: "32%", obs: "Extrusada 4 a 6 mm" },
+            { range: "150–400g", pct: "4,0%", freq: "3x/dia", fcr: "1,4", protein: "28%", obs: "Extrusada 4 a 12 mm" },
+            { range: "400–900g", pct: "2,5%", freq: "2x/dia", fcr: "1,5", protein: "28%", obs: "Extrusada 4 a 12 mm" },
         ],
     },
 };
@@ -312,6 +312,13 @@ function getPhase(sp, grams) {
     return p.find(x => grams >= x.minW && grams < x.maxW) || p[p.length - 1];
 }
 function today() { return new Date().toISOString().split("T")[0]; }
+const GRAIN_SIZE_OPTIONS = {
+    "45%": ["1,5 mm", "1,8 mm", "2 mm", "3 mm"],
+    "40%": ["1,5 mm", "1,8 mm", "2 mm", "3 mm"],
+    "36%": ["2 mm", "5 mm"],
+    "32%": ["4 mm", "6 mm"],
+    "28%": ["4 mm", "6 mm", "8 mm", "10 mm", "12 mm"]
+};
 function getStockByProtein(stock) {
     var byProtein = {};
     var history = Array.isArray(stock && stock.history) ? stock.history : [];
@@ -2247,7 +2254,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                         React.createElement("span", { style: { color: "#fbbf24", fontWeight: 700 } }, effectivePct, "%", isOverride ? " ✏️" : ""))),
                 React.createElement("div", { style: { background: "rgba(0,0,0,0.2)", borderRadius: 9, padding: "8px 14px", textAlign: "center" } },
                     React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, "Tipo"),
-                    React.createElement("div", { style: { fontSize: 13, fontWeight: 700, marginTop: 2 } }, (() => { var _a, _b, _c, _d; const ft = (_a = SP[tank.species]) === null || _a === void 0 ? void 0 : _a.feedTable; const idx = (_c = (_b = SP[tank.species]) === null || _b === void 0 ? void 0 : _b.phases) === null || _c === void 0 ? void 0 : _c.findIndex(p => p.name === (phase === null || phase === void 0 ? void 0 : phase.name)); return ((_d = ft === null || ft === void 0 ? void 0 : ft[idx]) === null || _d === void 0 ? void 0 : _d.obs) || ""; })()))),
+                    React.createElement("div", { style: { fontSize: 13, fontWeight: 700, marginTop: 2 } }, (GRAIN_SIZE_OPTIONS[feedProtein] || []).join(" \u00B7 ") || "\u2014"))),
             React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 } }, meals.map((meal, i) => {
                 const sacs = parseFloat(meal.sacos || 0);
                 const ref = parseFloat(meal.refused || 0);
@@ -3550,13 +3557,6 @@ function StockInModal({ onClose }) {
                     "\uD83D\uDCF7 ",
                     React.createElement("strong", null, "Aceita foto do iPhone!"),
                     " Tire foto da nota com a c\u00E2mera, selecione a imagem e a IA l\u00EA. Tamb\u00E9m aceita PDF.")));
-    const GRAIN_SIZE_OPTIONS = {
-        "45%": ["1,5 mm", "1,8 mm", "2 mm", "3 mm"],
-        "40%": ["1,5 mm", "1,8 mm", "2 mm", "3 mm"],
-        "36%": ["2 mm", "5 mm"],
-        "32%": ["4 mm", "6 mm"],
-        "28%": ["4 mm", "6 mm", "8 mm", "10 mm", "12 mm"]
-    };
     const grainOptions = GRAIN_SIZE_OPTIONS[form.proteinPct] || ["1,5 mm", "1,8 mm", "2 mm", "3 mm", "4 mm", "5 mm", "6 mm", "8 mm", "10 mm", "12 mm"];
     const manualEl = tab === "manual" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
                 parsed && !parsed._error && (React.createElement("div", { style: { background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)", borderRadius: 9, padding: "10px 14px", fontSize: 12, color: "var(--accent)" } },
@@ -4299,3 +4299,4 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
