@@ -383,7 +383,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .mono{font-family:var(--mono);}
 
 /* ── MOBILE NAV ── */
-.mob-menu{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,14,26,0.97);z-index:200;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top, 0px) + 64px) 20px calc(env(safe-area-inset-bottom, 0px) + 30px);gap:6px;overflow-y:auto;}
+.mob-menu{position:fixed;top:0;left:0;right:0;bottom:0;background:rgb(6,14,26);z-index:1000;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top, 0px) + 64px) 20px calc(env(safe-area-inset-bottom, 0px) + 30px);gap:6px;overflow-y:auto;overscroll-behavior:contain;}
 .mob-item{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);cursor:pointer;font-size:15px;font-weight:600;color:var(--text);transition:background .15s;}
 .mob-item:active{background:rgba(14,165,233,0.15);}
 .mob-item.active{background:rgba(14,165,233,0.12);border-color:rgba(14,165,233,0.3);color:var(--accent);}
@@ -754,7 +754,7 @@ function UserManagementModal({ onClose, currentUser }){
   }
 
   return (
-    React.createElement("div", { ref: swipeRef, style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(12px)",zIndex:300,display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top, 0px)"} },
+    React.createElement("div", { ref: swipeRef, style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",backdropFilter:"blur(12px)",zIndex:1000,display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top, 0px)"} },
       // Header
       React.createElement("div", { style:{paddingTop:"max(env(safe-area-inset-top, 14px), 14px)",paddingBottom:"14px",paddingLeft:"18px",paddingRight:"18px",borderBottom:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:12,background:"#060e1a"} },
         React.createElement("span", { style:{fontSize:22} }, "👥"),
@@ -1148,6 +1148,17 @@ function App() {
 function Nav({ page, goHome, onNewTank, onSettings, onFinanceiro, onRelatorios, alerts, onStockIn, stock, session, role, onLogout, onUserMgmt, syncing, lastSync, dbLoaded }) {
   var _role = role || ROLES.admin;
     const [open, setOpen] = (0, useState)(false);
+    (0, useEffect)(function() {
+        if (!open) return;
+        var scrollY = window.scrollY;
+        document.body.classList.add("modal-open");
+        document.body.style.top = "-" + scrollY + "px";
+        return function() {
+            document.body.classList.remove("modal-open");
+            document.body.style.top = "";
+            window.scrollTo(0, scrollY);
+        };
+    }, [open]);
     const dangerCount = alerts.filter(a => a.level === "danger").length;
     const warnCount = alerts.filter(a => a.level === "warn").length;
     function close(fn) { return () => { setOpen(false); fn && fn(); }; }
@@ -2997,7 +3008,7 @@ function TankModal({ mode, tank, onClose }) {
     const aLabel = ((_a = UNITS_DEF.area[aUnit]) === null || _a === void 0 ? void 0 : _a.label) || "m²";
     const dLabel = ((_b = UNITS_DEF.depth[dUnit]) === null || _b === void 0 ? void 0 : _b.label) || "m";
     const wLabel = ((_c = UNITS_DEF.weight[wUnit]) === null || _c === void 0 ? void 0 : _c.label) || "g";
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "hidden" } },
+    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "hidden" } },
         React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 500, padding: 22, maxHeight: "calc(100svh - 32px)", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", margin: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, mode === "new" ? "Novo Tanque" : "Editar Tanque"),
@@ -3387,7 +3398,7 @@ function StockInModal({ onClose }) {
         }
     }
     if (confirmed)
-        return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
+        return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)" } },
             React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 420, padding: 32, textAlign: "center", marginTop: 8 } },
                 React.createElement("div", { style: { fontSize: 52, marginBottom: 16 } }, "\u2705"),
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 20, marginBottom: 8 } }, "Estoque Atualizado!"),
@@ -3406,19 +3417,17 @@ function StockInModal({ onClose }) {
                     " \u00B7 ",
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
-            React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: "var(--dark)" } },
+    const headerEl = React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: "var(--dark)" } },
                 React.createElement("div", null,
                     React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\uD83D\uDCE5 Entrada de Ra\u00E7\u00E3o"),
                     pdfName && React.createElement("div", { style: { fontSize: 11, color: "var(--accent)", marginTop: 3 } },
                         "\uD83D\uDCC4 ",
                         pdfName)),
-                React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 20 } }, "\u2715")),
-            React.createElement("div", { style: { display: "flex", gap: 6, padding: "14px 18px 0", flexShrink: 0 } },
+                React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 20 } }, "\u2715"));
+    const tabsEl = React.createElement("div", { style: { display: "flex", gap: 6, marginBottom: 20 } },
                 React.createElement("button", { className: `tab-btn ${tab === "manual" ? "active" : ""}`, onClick: () => setTab("manual") }, "\u270F\uFE0F Digitar Manualmente"),
-                React.createElement("button", { className: `tab-btn ${tab === "upload" ? "active" : ""}`, onClick: () => setTab("upload") }, "\uD83D\uDCC4 Upload Nota Fiscal (PDF)")),
-            React.createElement("div", { style: { flex: 1, overflowY: "auto", padding: 20 } },
-            tab === "upload" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
+                React.createElement("button", { className: `tab-btn ${tab === "upload" ? "active" : ""}`, onClick: () => setTab("upload") }, "\uD83D\uDCC4 Upload Nota Fiscal (PDF)"));
+    const uploadEl = tab === "upload" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
                 React.createElement("input", { ref: fileRef, type: "file", accept: ".pdf,.jpg,.jpeg,.png,.heic,.heif,.webp,application/pdf,image/*", style: { display: "none" }, onChange: e => {
                         const file = e.target.files[0];
                         if (file) {
@@ -3498,8 +3507,8 @@ function StockInModal({ onClose }) {
                 React.createElement("div", { style: { fontSize: 12, color: "var(--muted)", padding: "10px 14px", background: "rgba(255,255,255,0.025)", borderRadius: 9 } },
                     "\uD83D\uDCF7 ",
                     React.createElement("strong", null, "Aceita foto do iPhone!"),
-                    " Tire foto da nota com a c\u00E2mera, selecione a imagem e a IA l\u00EA. Tamb\u00E9m aceita PDF."))),
-            tab === "manual" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
+                    " Tire foto da nota com a c\u00E2mera, selecione a imagem e a IA l\u00EA. Tamb\u00E9m aceita PDF.")));
+    const manualEl = tab === "manual" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
                 parsed && !parsed._error && (React.createElement("div", { style: { background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)", borderRadius: 9, padding: "10px 14px", fontSize: 12, color: "var(--accent)" } },
                     "\uD83D\uDCC4 Dados extra\u00EDdos do PDF ",
                     React.createElement("strong", null, pdfName),
@@ -3576,10 +3585,14 @@ function StockInModal({ onClose }) {
                         { l: "Fornecedor", v: form.supplier || "—" },
                     ].map(i => (React.createElement("div", { key: i.l, style: { background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: "8px 10px" } },
                         React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, i.l),
-                        React.createElement("div", { style: { fontFamily: "var(--mono)", fontWeight: 700, fontSize: 13, marginTop: 2, color: "var(--text)" } }, i.v)))))))),
-            React.createElement("div", { style: { flexShrink: 0, padding: "12px 26px 16px", borderTop: "1px solid var(--border)", background: "var(--dark)" } },
-                React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque")
-            )))));
+                        React.createElement("div", { style: { fontFamily: "var(--mono)", fontWeight: 700, fontSize: 13, marginTop: 2, color: "var(--text)" } }, i.v)))))))));
+
+    const footerEl = tab === "manual" && React.createElement("div", { style: { flexShrink: 0, padding: "12px 26px 16px", borderTop: "1px solid var(--border)", background: "var(--dark)" } },
+        React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque"));
+
+    const scrollEl = React.createElement("div", { style: { flex: 1, overflowY: "auto", overflowX: "hidden", touchAction: "pan-y", WebkitOverflowScrolling: "touch", padding: 20 } }, uploadEl, manualEl);
+
+    return React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 1000, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } }, headerEl, tabsEl, scrollEl, footerEl);
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
@@ -3589,7 +3602,7 @@ function SettingsModal({ onClose }) {
   useLockBodyScroll();
   var swipeRef = useSwipeToClose(onClose);
     const { units, setUnits, notifPerm, requestNotif, waterTimes, setWaterTimes } = useApp();
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "hidden" } },
+    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "hidden" } },
         React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 480, padding: 26, maxHeight: "calc(100svh - 32px)", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 } },
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\u2699\uFE0F Configura\u00E7\u00F5es"),
@@ -3707,7 +3720,7 @@ function FinanceiroModal({ onClose }) {
     }
     const capexByCat = groupBy(capex, "cat");
     const opexByCat = groupBy(opexG, "cat");
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
+    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", zIndex: 1000, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
         React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12, background: "var(--dark)" } },
             React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCB0"),
             React.createElement("div", null,
@@ -4144,7 +4157,7 @@ function RelatoriosModal({ onClose }) {
         downloadCSV(rows, `operacao_completa_${today()}.csv`);
         setExporting("");
     }
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 200, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
+    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 1000, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
         React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12, background: "var(--dark)" } },
             React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCCB"),
             React.createElement("div", null,
@@ -4237,4 +4250,3 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-  
