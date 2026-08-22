@@ -4295,4 +4295,7 @@ function RelatoriosModal({ onClose }) {
                                         " kg")));
                             }),
                             tanks.length === 0 && React.createElement("tr", null,
-                                React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--
+                                React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhum tanque")))))))))));
+}
+
+    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
