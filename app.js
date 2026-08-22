@@ -3008,8 +3008,8 @@ function TankModal({ mode, tank, onClose }) {
     const aLabel = ((_a = UNITS_DEF.area[aUnit]) === null || _a === void 0 ? void 0 : _a.label) || "m²";
     const dLabel = ((_b = UNITS_DEF.depth[dUnit]) === null || _b === void 0 ? void 0 : _b.label) || "m";
     const wLabel = ((_c = UNITS_DEF.weight[wUnit]) === null || _c === void 0 ? void 0 : _c.label) || "g";
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "hidden" } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 500, padding: 22, maxHeight: "calc(100svh - 32px)", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", margin: "auto", marginTop: 8, marginBottom: 8 } },
+    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", paddingBottom: "max(env(safe-area-inset-bottom, 20px), 20px)", overflowY: "hidden" } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 500, padding: 22, maxHeight: "calc(100svh - 64px)", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", margin: "auto", marginTop: 20, marginBottom: 20 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, mode === "new" ? "Novo Tanque" : "Editar Tanque"),
                 React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 20 } }, "\u2715")),
@@ -3417,7 +3417,7 @@ function StockInModal({ onClose }) {
                     " \u00B7 ",
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
-    const headerEl = React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: "var(--dark)" } },
+    const headerEl = React.createElement("div", { style: { paddingTop: "14px", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: "var(--dark)", borderTopLeftRadius: 18, borderTopRightRadius: 18 } },
                 React.createElement("div", null,
                     React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\uD83D\uDCE5 Entrada de Ra\u00E7\u00E3o"),
                     pdfName && React.createElement("div", { style: { fontSize: 11, color: "var(--accent)", marginTop: 3 } },
@@ -3508,6 +3508,14 @@ function StockInModal({ onClose }) {
                     "\uD83D\uDCF7 ",
                     React.createElement("strong", null, "Aceita foto do iPhone!"),
                     " Tire foto da nota com a c\u00E2mera, selecione a imagem e a IA l\u00EA. Tamb\u00E9m aceita PDF.")));
+    const GRAIN_SIZE_OPTIONS = {
+        "45%": ["1,5 a 1,8 mm", "2 a 3 mm"],
+        "40%": ["1,5 a 1,8 mm", "2 a 3 mm"],
+        "36%": ["2 a 5 mm"],
+        "32%": ["4 a 6 mm"],
+        "28%": ["4 a 6 mm", "6 a 8 mm", "8 a 10 mm", "10 a 12 mm"]
+    };
+    const grainOptions = GRAIN_SIZE_OPTIONS[form.proteinPct] || ["1,5 a 1,8 mm", "2 a 3 mm", "2 a 5 mm", "4 a 6 mm", "6 a 8 mm", "8 a 10 mm", "10 a 12 mm"];
     const manualEl = tab === "manual" && (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
                 parsed && !parsed._error && (React.createElement("div", { style: { background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)", borderRadius: 9, padding: "10px 14px", fontSize: 12, color: "var(--accent)" } },
                     "\uD83D\uDCC4 Dados extra\u00EDdos do PDF ",
@@ -3526,23 +3534,19 @@ function StockInModal({ onClose }) {
                     React.createElement("input", { className: "inp", placeholder: "Nome da empresa fornecedora", value: form.supplier, onChange: e => handleField("supplier", e.target.value) })),
                 React.createElement("div", { className: "grid2" },
                     React.createElement("div", null,
-                        React.createElement("lbl", null, "Tipo de Ra\u00E7\u00E3o"),
-                        React.createElement("select", { className: "inp", value: form.feedType, onChange: e => handleField("feedType", e.target.value) },
-                            React.createElement("option", { value: "" }, "Selecione..."),
-                            React.createElement("option", null, "Extrusada flutuante"),
-                            React.createElement("option", null, "Extrusada semi-afundante"),
-                            React.createElement("option", null, "Extrusada micro (alevino)"),
-                            React.createElement("option", null, "Peletizada"),
-                            React.createElement("option", null, "Outro"))),
-                    React.createElement("div", null,
                         React.createElement("lbl", null, "% Prote\u00EDna da Ra\u00E7\u00E3o"),
-                        React.createElement("select", { className: "inp", value: form.proteinPct, onChange: e => handleField("proteinPct", e.target.value) },
+                        React.createElement("select", { className: "inp", value: form.proteinPct, onChange: e => { handleField("proteinPct", e.target.value); handleField("feedType", ""); } },
                             React.createElement("option", { value: "" }, "Selecione..."),
                             React.createElement("option", null, "45%"),
                             React.createElement("option", null, "40%"),
                             React.createElement("option", null, "36%"),
                             React.createElement("option", null, "32%"),
-                            React.createElement("option", null, "28%")))),
+                            React.createElement("option", null, "28%"))),
+                    React.createElement("div", null,
+                        React.createElement("lbl", null, "Tamanho do Gr\u00E3o (mm)"),
+                        React.createElement("select", { className: "inp", value: form.feedType, onChange: e => handleField("feedType", e.target.value) },
+                            React.createElement("option", { value: "" }, "Selecione..."),
+                            grainOptions.map(g => React.createElement("option", { key: g }, g))))),
                 React.createElement("div", null,
                     React.createElement("lbl", null, "Marca / Fabricante"),
                     React.createElement("input", { className: "inp", placeholder: "ex: Guabi, Supra, Nutron...", value: form.feedBrand, onChange: e => handleField("feedBrand", e.target.value) })),
@@ -3587,12 +3591,13 @@ function StockInModal({ onClose }) {
                         React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, i.l),
                         React.createElement("div", { style: { fontFamily: "var(--mono)", fontWeight: 700, fontSize: 13, marginTop: 2, color: "var(--text)" } }, i.v)))))))));
 
-    const footerEl = tab === "manual" && React.createElement("div", { style: { flexShrink: 0, padding: "12px 26px 16px", borderTop: "1px solid var(--border)", background: "var(--dark)" } },
+    const footerEl = tab === "manual" && React.createElement("div", { style: { flexShrink: 0, padding: "12px 26px 16px", borderTop: "1px solid var(--border)", background: "var(--dark)", borderBottomLeftRadius: 18, borderBottomRightRadius: 18 } },
         React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 14, fontSize: 15 }, onClick: handleConfirm }, "\u2705 Confirmar Entrada no Estoque"));
 
     const scrollEl = React.createElement("div", { style: { flex: 1, overflowY: "auto", overflowX: "hidden", touchAction: "pan-y", WebkitOverflowScrolling: "touch", padding: 20 } }, uploadEl, manualEl);
 
-    return React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 1000, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } }, headerEl, tabsEl, scrollEl, footerEl);
+    return React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "max(env(safe-area-inset-top, 14px), 14px) 10px max(env(safe-area-inset-bottom, 14px), 14px)" } },
+        React.createElement("div", { ref: swipeRef, style: { width: "100%", maxWidth: 560, height: "100%", maxHeight: "100%", background: "var(--dark)", borderRadius: 18, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" } }, headerEl, tabsEl, scrollEl, footerEl));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // SETTINGS MODAL
@@ -3602,8 +3607,8 @@ function SettingsModal({ onClose }) {
   useLockBodyScroll();
   var swipeRef = useSwipeToClose(onClose);
     const { units, setUnits, notifPerm, requestNotif, waterTimes, setWaterTimes } = useApp();
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "hidden" } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 480, padding: 26, maxHeight: "calc(100svh - 32px)", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", marginTop: 8, marginBottom: 8 } },
+    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", paddingBottom: "max(env(safe-area-inset-bottom, 20px), 20px)", overflowY: "hidden" } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 480, padding: 26, maxHeight: "calc(100svh - 64px)", overflowY: "auto", WebkitOverflowScrolling: "touch", touchAction: "pan-y", marginTop: 20, marginBottom: 20 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 } },
                 React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\u2699\uFE0F Configura\u00E7\u00F5es"),
                 React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 20 } }, "\u2715")),
@@ -3720,7 +3725,8 @@ function FinanceiroModal({ onClose }) {
     }
     const capexByCat = groupBy(capex, "cat");
     const opexByCat = groupBy(opexG, "cat");
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", zIndex: 1000, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "max(env(safe-area-inset-top, 14px), 14px) 10px max(env(safe-area-inset-bottom, 14px), 14px)" } },
+    React.createElement("div", { ref: swipeRef, style: { width: "100%", maxWidth: 560, height: "100%", maxHeight: "100%", background: "var(--dark)", borderRadius: 18, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" } },
         React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12, background: "var(--dark)" } },
             React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCB0"),
             React.createElement("div", null,
@@ -3862,7 +3868,7 @@ function FinanceiroModal({ onClose }) {
                                         "%"))),
                             React.createElement("div", { style: { height: 6, borderRadius: 4, background: "rgba(255,255,255,0.06)" } },
                                 React.createElement("div", { style: { height: "100%", borderRadius: 4, background: "var(--accent)", width: `${pct}%`, transition: "width .4s" } }))));
-                    }))))))));
+                    })))))))));
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // RELATÓRIOS MODAL
@@ -4157,7 +4163,8 @@ function RelatoriosModal({ onClose }) {
         downloadCSV(rows, `operacao_completa_${today()}.csv`);
         setExporting("");
     }
-    return (React.createElement("div", { ref: swipeRef, style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 1000, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "max(env(safe-area-inset-top, 14px), 14px) 10px max(env(safe-area-inset-bottom, 14px), 14px)" } },
+    React.createElement("div", { ref: swipeRef, style: { width: "100%", maxWidth: 560, height: "100%", maxHeight: "100%", background: "var(--dark)", borderRadius: 18, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" } },
         React.createElement("div", { style: { paddingTop: "max(env(safe-area-inset-top, 14px), 14px)", paddingBottom: "14px", paddingLeft: "18px", paddingRight: "18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12, background: "var(--dark)" } },
             React.createElement("span", { style: { fontSize: 22 } }, "\uD83D\uDCCB"),
             React.createElement("div", null,
@@ -4246,7 +4253,8 @@ function RelatoriosModal({ onClose }) {
                                         " kg")));
                             }),
                             tanks.length === 0 && React.createElement("tr", null,
-                                React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhum tanque"))))))))));
+                                React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhum tanque")))))))))));
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
