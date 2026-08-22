@@ -2015,6 +2015,8 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
             feedGiven: totalGivenSacos, // sacos — for FCR calc compat
             feedGivenKg: totalGivenKg, // kg — for chart compat
             feedRefusedKg: totalRefusedKg,
+            feedProteinUsed: feedProtein,
+            feedProteinRecommended: effectivePct ? effectivePct + "%" : "",
             mortality: feedForm.mortality,
             obs: feedForm.obs,
             engVisit: engVisit.active ? engVisit : null,
@@ -3937,6 +3939,7 @@ function RelatoriosModal({ onClose }) {
     const allDays = Object.entries(tl).sort(([a], [b]) => a > b ? 1 : -1);
     const totalFedKg = allDays.reduce((s, [, d]) => s + (d.feedGivenKg || parseFloat(d.feedGiven || 0) * 25), 0);
     const totalMort = allDays.reduce((s, [, d]) => s + (parseFloat(d.mortality || 0)), 0);
+    const proteinMismatchDays = allDays.filter(([, d]) => d.feedProteinUsed && d.feedProteinRecommended && d.feedProteinUsed !== d.feedProteinRecommended);
     const totalExpTank = tankExp.reduce((s, e) => s + (e.amount || 0), 0);
     const biomassKg = (((selTank === null || selTank === void 0 ? void 0 : selTank.fishCount) || 0) * ((selTank === null || selTank === void 0 ? void 0 : selTank.avgWeightG) || 0)) / 1000;
     const phase = getPhase((selTank === null || selTank === void 0 ? void 0 : selTank.species) || "matrinxa", (selTank === null || selTank === void 0 ? void 0 : selTank.avgWeightG) || 0);
@@ -4236,6 +4239,17 @@ function RelatoriosModal({ onClose }) {
                     ].map(k => (React.createElement("div", { key: k.l, className: "card", style: { padding: "11px 13px" } },
                         React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", textTransform: "uppercase", fontWeight: 600 } }, k.l),
                         React.createElement("div", { style: { fontFamily: "var(--mono)", fontSize: 14, fontWeight: 700, marginTop: 3 } }, k.v))))),
+                    React.createElement("div", { className: "card", style: { padding: 16 } },
+                        React.createElement("div", { className: "section-hdr" }, "\uD83E\uDDEA Ader\u00EAncia \u00E0 Prote\u00EDna Recomendada"),
+                        proteinMismatchDays.length === 0 ? (React.createElement("p", { style: { color: "var(--green)", fontSize: 13 } }, "\u2705 Nenhum dia registrado com prote\u00EDna diferente da recomendada.")) : (React.createElement(React.Fragment, null,
+                            React.createElement("p", { style: { color: "#f87171", fontSize: 12, marginBottom: 10 } },
+                                "\u26A0\uFE0F ", proteinMismatchDays.length, " dia(s) alimentados com prote\u00EDna diferente da recomendada para a fase \u2014 pode explicar varia\u00E7\u00F5es de convers\u00E3o (FCR)."),
+                            proteinMismatchDays.map(([d, log]) => (React.createElement("div", { key: d, style: { display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--border)", fontSize: 12 } },
+                                React.createElement("span", { style: { color: "var(--muted)" } }, d),
+                                React.createElement("span", null,
+                                    React.createElement("span", { style: { color: "#f87171", fontWeight: 700 } }, log.feedProteinUsed),
+                                    " usado \u00B7 recomendado ",
+                                    React.createElement("span", { style: { color: "var(--green)", fontWeight: 700 } }, log.feedProteinRecommended)))))))),
                     React.createElement("div", { className: "card", style: { padding: 16 } },
                         React.createElement("div", { className: "section-hdr" },
                             "Exportar Relat\u00F3rio \u2014 ",
