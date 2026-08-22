@@ -4238,4 +4238,5 @@ function RelatoriosModal({ onClose }) {
                                 React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhum tanque"))))))))));
 }
 
-    ReactDOM.createRoot(document.getElement
+    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
