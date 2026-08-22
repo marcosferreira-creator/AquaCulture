@@ -26,6 +26,10 @@ async function sbRequest(method, table, body, params) {
     var r = await fetch(url, opts);
     if (!r.ok) {
       var err = await r.text().catch(function(){ return ""; });
+      if (r.status === 503 || r.status === 0) {
+        console.warn("Supabase pausado ou offline - usando dados locais");
+        return null;
+      }
       console.warn("Supabase", method, table, r.status, err.slice(0,100));
       return null;
     }
@@ -338,12 +342,12 @@ const CSS = `
   --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#a78bfa;
   --font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
 }
-body{background:var(--navy);color:var(--text);font-family:var(--font);min-height:100vh;}*{touch-action:pan-x pan-y;-ms-touch-action:pan-x pan-y;}body.modal-open{overflow:hidden;position:fixed;width:100%;}
+body{background:var(--navy);color:var(--text);font-family:var(--font);min-height:100vh;}body.modal-open{overflow:hidden;position:fixed;width:100%;left:0;right:0;}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:#1e3a5a;border-radius:4px}
 input,select,textarea{outline:none;font-family:var(--font);font-size:16px;}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;}
 .card2{background:var(--card2);border:1px solid var(--border2);border-radius:10px;}
-.inp{background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:9px;padding:9px 13px;color:var(--text);font-size:16px;width:100%;transition:border-color .2s;color-scheme:dark;}select.inp,select{color-scheme:dark;background:#0d1829!important;color:#e2e8f0!important;}option{background:#0d1829!important;color:#e2e8f0!important;}
+.inp{background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:9px;padding:9px 13px;color:var(--text);font-size:16px !important;width:100%;transition:border-color .2s;color-scheme:dark;}select.inp,select{color-scheme:dark;background:#0d1829!important;color:#e2e8f0!important;}option{background:#0d1829!important;color:#e2e8f0!important;}
 .inp:focus{border-color:var(--accent);}
 .inp option{background:#0b1626;}
 .btn{border:none;border-radius:9px;padding:9px 18px;cursor:pointer;font-family:var(--font);font-weight:600;font-size:13px;transition:all .2s;}
@@ -408,7 +412,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .kpi-chip .lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
 
 /* ── PAGE PADDING FOR BOTTOM BAR ── */
-.page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));padding-top:8px;}
+.page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));padding-top:8px;padding-left:14px;padding-right:14px;}
 
 /* ── FULL WIDTH GRID ON MOBILE ── */
 @media(max-width:600px){
@@ -422,7 +426,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   nav{padding-top:env(safe-area-inset-top)!important;height:calc(52px + env(safe-area-inset-top))!important;}
   .mob-menu{padding-top:calc(env(safe-area-inset-top) + 64px)!important;}
   .bottom-bar{padding-bottom:env(safe-area-inset-bottom)!important;bottom:0!important;}
-  .page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom))!important;}
+  .page-content{padding-bottom:calc(100px + env(safe-area-inset-bottom))!important;padding-left:14px;padding-right:14px;}
 }
 /* Keep bottom bar fixed even when iOS keyboard opens */
 @media screen and (max-height: 500px) {
@@ -882,7 +886,12 @@ function App() {
           DB.getStock(), DB.getCapex(), DB.getOpex()
         ]);
         // SAFE update: null = network error (keep existing), [] = empty (keep existing), [data] = update
-        if (dbTanks && dbTanks.length > 0) setTanks(dbTanks);
+        if (dbTanks && dbTanks.length > 0) {
+          setTanks(dbTanks);
+        } else if (!isSilent && (!dbTanks || dbTanks.length === 0)) {
+          // Supabase may be waking up - retry after 3 seconds
+          setTimeout(function() { loadFromDB(true); }, 3000);
+        }
         if (dbLogs  && dbLogs !== null && Object.keys(dbLogs).length > 0) setLogs(dbLogs);
         if (dbExp   && dbExp  !== null && Object.keys(dbExp).length  > 0) setExpenses(dbExp);
         if (dbStock && dbStock.bags !== undefined) {
@@ -3385,8 +3394,8 @@ function StockInModal({ onClose }) {
                     " \u00B7 ",
                     form.supplier),
                 React.createElement("button", { className: "btn btn-p", style: { width: "100%", padding: 12, marginTop: 8 }, onClick: onClose }, "Fechar"))));
-    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 20, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", overflowY: "auto" } },
-        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "88vh", overflowY: "auto", margin: "auto", marginTop: 8, marginBottom: 8 } },
+    return (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "max(env(safe-area-inset-top, 16px), 16px)", overflowY: "hidden" } },
+        React.createElement("div", { className: "card slide", style: { width: "100%", maxWidth: 560, padding: 26, maxHeight: "88vh", overflowY: "auto", WebkitOverflowScrolling: "touch", margin: "auto", marginTop: 8, marginBottom: 8 } },
             React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 } },
                 React.createElement("div", null,
                     React.createElement("h2", { style: { fontWeight: 700, fontSize: 18 } }, "\uD83D\uDCE5 Entrada de Ra\u00E7\u00E3o"),
