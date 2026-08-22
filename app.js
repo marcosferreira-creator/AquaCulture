@@ -312,6 +312,17 @@ function getPhase(sp, grams) {
     return p.find(x => grams >= x.minW && grams < x.maxW) || p[p.length - 1];
 }
 function today() { return new Date().toISOString().split("T")[0]; }
+function getStockByProtein(stock) {
+    var byProtein = {};
+    var history = Array.isArray(stock && stock.history) ? stock.history : [];
+    history.forEach(function(h) {
+        var key = h.proteinPct || "Sem categoria";
+        if (byProtein[key] === undefined) byProtein[key] = 0;
+        if (h.type === "in") byProtein[key] += (h.bags || 0);
+        else if (h.type === "out") byProtein[key] -= (h.bags || 0);
+    });
+    return byProtein;
+}
 function genId() { return Math.random().toString(36).slice(2, 9); }
 function load(k, d) { try {
     const v = localStorage.getItem(k);
@@ -366,6 +377,8 @@ lbl{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spaci
 .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;}
 .grid3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:14px;}
 .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+.grid2>*,.grid3>*,.grid4>*{min-width:0;}
+input[type=date].inp,input[type=date]{min-width:0;max-width:100%;}
 @media(max-width:700px){.grid2,.grid3,.grid4{grid-template-columns:minmax(0,1fr)!important;}}
 .kpi{padding:16px 18px;}
 .kpi .val{font-size:22px;font-weight:700;font-family:var(--mono);margin:6px 0 2px;}
@@ -1063,12 +1076,12 @@ function App() {
             });
         });
     }
-    function consumeStock(bags, tankId, note) {
+    function consumeStock(bags, tankId, note, proteinPct) {
         setStock(function(prev) {
             var prevHistory = Array.isArray(prev.history) ? prev.history : [];
             return Object.assign({}, prev, {
                 bags: Math.max(0, (prev.bags || 0) - bags),
-                history: [...prevHistory, { date: today(), type: "out", bags: bags, tankId: tankId, note: note }]
+                history: [...prevHistory, { date: today(), type: "out", bags: bags, tankId: tankId, note: note, proteinPct: proteinPct || "" }]
             });
         });
     }
@@ -1679,6 +1692,17 @@ function StockPanel() {
                     React.createElement("span", { style: { fontSize: 12, color: "var(--muted)" } }, "sacos")),
                 stock.bags <= stock.minAlert && (React.createElement("div", { className: "alert-bar pulse", style: { background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", marginTop: 12 } }, "\uD83D\uDEA8 Estoque abaixo do m\u00EDnimo!"))),
             React.createElement("div", { className: "card", style: { padding: 18 } },
+                React.createElement("div", { className: "section-hdr" }, "\uD83E\uDDEA Saldo por Prote\u00EDna"),
+                (() => {
+                    const byProtein = getStockByProtein(stock);
+                    const entries = Object.entries(byProtein).filter(([, bags]) => bags !== 0);
+                    return entries.length === 0 ? (React.createElement("p", { style: { color: "var(--muted)", fontSize: 13 } }, "Nenhuma entrada com prote\u00EDna registrada ainda.")) : entries.map(([pct, bags]) => (React.createElement("div", { key: pct, style: { display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--border)", fontSize: 13 } },
+                        React.createElement("span", { style: { color: "var(--muted)" } }, pct),
+                        React.createElement("span", { style: { fontFamily: "var(--mono)", fontWeight: 600, color: bags < 0 ? "var(--red)" : "var(--text)" } },
+                            bags,
+                            " sacos"))));
+                })()),
+            React.createElement("div", { className: "card", style: { padding: 18 } },
                 React.createElement("div", { className: "section-hdr" }, "\uD83D\uDCCA Consumo por Tanque"),
                 (() => {
                     const byTank = {};
@@ -1866,6 +1890,11 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
     // Use manual override if set, otherwise use phase recommendation
     var effectivePct = tank.overrideFeedPct ? parseInt(tank.overrideFeedPct) : (phase && phase.protPct);
     var isOverride = !!tank.overrideFeedPct;
+    const [feedProtein, setFeedProtein] = (0, useState)(() => effectivePct ? effectivePct + "%" : "");
+    (0, useEffect)(() => {
+        setFeedProtein(effectivePct ? effectivePct + "%" : "");
+    }, [tank.id, effectivePct]);
+    const stockByProtein = getStockByProtein(stock);
     const dl = ((_a = logs[tank.id]) === null || _a === void 0 ? void 0 : _a[activeDate]) || {};
     // readings[0]=manhã, [1]=tarde, [2]=noite
     const emptyReadings = [{ time: "", o2: "", temp: "", ph: "" }, { time: "", o2: "", temp: "", ph: "" }];
@@ -2001,7 +2030,7 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
         }
         // Only deduct new sacos from stock (diff prevents triple-deduction on re-save)
         if (diff > 0)
-            consumeStock(diff, tank.id, `Arraçoamento ${tank.name} ${activeDate}`);
+            consumeStock(diff, tank.id, `Arraçoamento ${tank.name} ${activeDate}`, feedProtein);
         goHome();
     }
     // Status colors for each reading
@@ -2037,11 +2066,14 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                         " sc/refei\u00E7\u00E3o \u00B7 ",
                         React.createElement("span", { style: { color: "#fbbf24", fontWeight: 700 } },
                             "prot. ", effectivePct, "%", isOverride ? " ✏️" : "")),
-                    React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", marginTop: 2 } },
-                        "Estoque: ",
-                        React.createElement("strong", { style: { color: stock.bags < 10 ? "var(--red)" : "var(--text)" } },
-                            stock.bags,
-                            " sacos")))),
+                    React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", marginTop: 6, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" } },
+                        "Ra\u00E7\u00E3o usada hoje: ",
+                        React.createElement("select", { className: "inp", style: { display: "inline-block", width: "auto", padding: "4px 8px", fontSize: 12 }, value: feedProtein, onChange: e => setFeedProtein(e.target.value) },
+                            React.createElement("option", { value: "" }, "Selecione..."),
+                            ["45%", "40%", "36%", "32%", "28%"].map(p => React.createElement("option", { key: p }, p))),
+                        React.createElement("strong", { style: { color: (stockByProtein[feedProtein] || 0) < 10 ? "var(--red)" : "var(--text)" } },
+                            (stockByProtein[feedProtein] || 0),
+                            " sacos dispon\u00EDveis")))),
             feedAlert && (React.createElement("div", { className: "alert-bar pulse", style: { background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171", marginTop: 12 } },
                 "\uD83D\uDEAB ",
                 React.createElement("strong", null, "N\u00C3O ALIMENTAR"),
@@ -4263,7 +4295,4 @@ function RelatoriosModal({ onClose }) {
                                         " kg")));
                             }),
                             tanks.length === 0 && React.createElement("tr", null,
-                                React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhum tanque")))))))))));
-}
-
-    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+                                React.createElement("td", { colSpan: 5, style: { textAlign: "center", color: "var(--
