@@ -1684,6 +1684,12 @@ function FeedTablePanel() {
 // ═══════════════════════════════════════════════════════════════════════════════
 function StockPanel() {
     const { stock, setStock, tanks } = useApp();
+    const avgCostByProtein = {};
+    stock.history.filter(h => h.type === "in" && h.proteinPct).forEach(h => {
+        if (!avgCostByProtein[h.proteinPct]) avgCostByProtein[h.proteinPct] = { totalCost: 0, totalBags: 0 };
+        avgCostByProtein[h.proteinPct].totalCost += (h.costPerBag || 0) * (h.bags || 0);
+        avgCostByProtein[h.proteinPct].totalBags += (h.bags || 0);
+    });
     return (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
         React.createElement("div", { className: "grid2" },
             React.createElement("div", { className: "card", style: { padding: 18 } },
@@ -1756,7 +1762,11 @@ function StockPanel() {
                         React.createElement("th", null, "Pagamento"),
                         React.createElement("th", null, ""))),
                 React.createElement("tbody", null,
-                    [...stock.history].reverse().slice(0, 50).map((h, i) => (React.createElement("tr", { key: i },
+                    [...stock.history].reverse().slice(0, 50).map((h, i) => {
+                        const grainMm = h.feedType || (GRAIN_SIZE_OPTIONS[h.proteinPct] || []).join("/");
+                        const avgEntry = h.proteinPct && avgCostByProtein[h.proteinPct];
+                        const estCostPerBag = h.type === "out" && avgEntry && avgEntry.totalBags > 0 ? avgEntry.totalCost / avgEntry.totalBags : null;
+                        return (React.createElement("tr", { key: i },
                         React.createElement("td", { style: { fontFamily: "var(--mono)", fontSize: 12 } }, h.date),
                         React.createElement("td", null,
                             React.createElement("span", { className: "badge", style: { background: h.type === "in" ? "rgba(34,197,94,0.12)" : "rgba(245,158,11,0.12)", color: h.type === "in" ? "var(--green)" : "var(--yellow)", fontSize: 10 } },
@@ -1764,10 +1774,10 @@ function StockPanel() {
                                 h.source === "pdf" ? " 🤖" : "")),
                         React.createElement("td", { style: { fontSize: 12 } }, h.supplier || h.note || "—"),
                         React.createElement("td", { style: { fontFamily: "var(--mono)", fontSize: 12 } }, h.nfNumber || "—"),
-                        React.createElement("td", { style: { fontSize: 12, color: "var(--muted)" } }, h.feedType ? `${h.feedType}${h.proteinPct ? " " + h.proteinPct : ""}${h.feedBrand ? " · " + h.feedBrand : ""}` : "—"),
+                        React.createElement("td", { style: { fontSize: 12, color: "var(--muted)" } }, grainMm ? `${grainMm}${h.proteinPct ? " " + h.proteinPct : ""}${h.feedBrand ? " · " + h.feedBrand : ""}` : "—"),
                         React.createElement("td", { style: { fontFamily: "var(--mono)", fontWeight: 600 } }, h.bags),
-                        React.createElement("td", { style: { fontFamily: "var(--mono)", fontSize: 12 } }, h.costPerBag ? fmtBRL(h.costPerBag) : "—"),
-                        React.createElement("td", { style: { fontFamily: "var(--mono)", fontWeight: 600, color: "var(--green)" } }, h.total ? fmtBRL(h.total) : "—"),
+                        React.createElement("td", { style: { fontFamily: "var(--mono)", fontSize: 12 } }, h.costPerBag ? fmtBRL(h.costPerBag) : (estCostPerBag ? fmtBRL(estCostPerBag) + " (méd.)" : "—")),
+                        React.createElement("td", { style: { fontFamily: "var(--mono)", fontWeight: 600, color: "var(--green)" } }, h.total ? fmtBRL(h.total) : (estCostPerBag ? fmtBRL(estCostPerBag * (h.bags || 0)) + " (méd.)" : "—")),
                         React.createElement("td", { style: { fontSize: 12, color: "var(--muted)" } }, h.payMethod || "—"),
                         React.createElement("td", null,
                             React.createElement("button", {
@@ -1782,7 +1792,8 @@ function StockPanel() {
                                 },
                                 style: { background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 6, padding: "3px 8px", cursor: "pointer", color: "#f87171", fontSize: 11, fontFamily: "var(--font)" }
                             }, "🗑️")
-                        )))),
+                        )));
+                    }),
                     stock.history.length === 0 && React.createElement("tr", null,
                         React.createElement("td", { colSpan: 9, style: { textAlign: "center", color: "var(--muted)", padding: 20 } }, "Nenhuma movimenta\u00E7\u00E3o registrada"))))))));
 }
@@ -2362,6 +2373,9 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                             ),
                             fedSacos > 0 && React.createElement("span", { style:{fontSize:12,color:"var(--muted)"} },
                                 "Ra\u00E7\u00E3o: ", parseFloat(fedSacos).toFixed(2), " sc"
+                            ),
+                            d.feedProteinUsed && React.createElement("span", { style:{fontSize:12,color:"var(--accent)"} },
+                                d.feedProteinUsed, " \u00B7 ", (GRAIN_SIZE_OPTIONS[d.feedProteinUsed] || []).join("/") || "\u2014"
                             ),
                             d.mortality > 0 && React.createElement("span", { style:{fontSize:12,color:"var(--red)"} },
                                 "\u2620\uFE0F ", d.mortality, " mort."
@@ -4322,4 +4336,3 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-  
