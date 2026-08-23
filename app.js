@@ -87,6 +87,9 @@ var DB = {
   async saveLog(tankId, date, data) {
     return sbRequest("POST","ac_logs",{ tank_id:tankId, log_date:date, data:data, updated_at:new Date().toISOString() },"");
   },
+  async deleteLog(tankId, date) {
+    return sbRequest("DELETE","ac_logs",null,"tank_id=eq."+tankId+"&log_date=eq."+date);
+  },
   // Expenses
   async getExpenses() {
     var rows = await sbRequest("GET","ac_expenses","","select=*");
@@ -1050,6 +1053,14 @@ function App() {
         });
         DB.saveLog(tankId, date, mergedDay);
     }
+    function deleteDayLog(tankId, date) {
+        setLogs(prev => {
+            var tankLogs = Object.assign({}, prev[tankId] || {});
+            delete tankLogs[date];
+            return Object.assign({}, prev, { [tankId]: tankLogs });
+        });
+        DB.deleteLog(tankId, date);
+    }
     function addExpense(tankId, exp) {
         var updated = [...(expenses[tankId] || []), exp];
         setExpenses(prev => ({
@@ -1140,7 +1151,7 @@ function App() {
         alerts.push({ level: "danger", tank: "Estoque", msg: `Ração baixa: ${stock.bags} sacos restantes` });
     const ctx = {
         tanks, logs, expenses, stock, cycles, units, setUnits,
-        addTank, updateTank, deleteTank, updateDayLog, addExpense,
+        addTank, updateTank, deleteTank, updateDayLog, deleteDayLog, addExpense,
         addStockIn, consumeStock, setCycles, setStock,
         activeTank, openTank, goHome, alerts, notify,
         capex, setCapex, opexG, setOpexG, schedule, setSchedule,
@@ -1763,10 +1774,11 @@ function StockPanel() {
                         React.createElement("th", null, ""))),
                 React.createElement("tbody", null,
                     [...stock.history].reverse().slice(0, 50).map((h, i) => {
+                        const realIdx = stock.history.length - 1 - i;
                         const grainMm = h.feedType || (GRAIN_SIZE_OPTIONS[h.proteinPct] || []).join("/");
                         const avgEntry = h.proteinPct && avgCostByProtein[h.proteinPct];
                         const estCostPerBag = h.type === "out" && avgEntry && avgEntry.totalBags > 0 ? avgEntry.totalCost / avgEntry.totalBags : null;
-                        return (React.createElement("tr", { key: i },
+                        return (React.createElement("tr", { key: realIdx },
                         React.createElement("td", { style: { fontFamily: "var(--mono)", fontSize: 12 } }, h.date),
                         React.createElement("td", null,
                             React.createElement("span", { className: "badge", style: { background: h.type === "in" ? "rgba(34,197,94,0.12)" : "rgba(245,158,11,0.12)", color: h.type === "in" ? "var(--green)" : "var(--yellow)", fontSize: 10 } },
@@ -1782,11 +1794,13 @@ function StockPanel() {
                         React.createElement("td", null,
                             React.createElement("button", {
                                 onClick: function() {
-                                    if (confirm("Apagar este registro do histórico?")) {
+                                    if (confirm("Apagar este registro do histórico? O saldo de sacos será recalculado.")) {
                                         setStock(function(prev) {
-                                            var newHist = prev.history.filter(function(_, idx) { return idx !== i; });
-                                            DB.saveStock(Object.assign({}, prev, { history: newHist }));
-                                            return Object.assign({}, prev, { history: newHist });
+                                            var newHist = prev.history.filter(function(_, idx) { return idx !== realIdx; });
+                                            var newBags = newHist.reduce(function(s, hh) { return s + (hh.type === "in" ? (hh.bags || 0) : -(hh.bags || 0)); }, 0);
+                                            var updated = Object.assign({}, prev, { history: newHist, bags: newBags });
+                                            DB.saveStock(updated);
+                                            return updated;
                                         });
                                     }
                                 },
@@ -1909,7 +1923,7 @@ function getSlotLabel(timeStr) {
 
 function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
     var _a;
-    const { updateDayLog, logs, activeDate, setActiveDate, consumeStock, stock, waterTimes, goHome } = useApp();
+    const { updateDayLog, deleteDayLog, logs, activeDate, setActiveDate, consumeStock, stock, waterTimes, goHome } = useApp();
     // Use manual override if set, otherwise use phase recommendation
     var effectivePct = tank.overrideFeedPct ? parseInt(tank.overrideFeedPct) : (phase && phase.protPct);
     var isOverride = !!tank.overrideFeedPct;
@@ -2380,7 +2394,16 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
                             d.mortality > 0 && React.createElement("span", { style:{fontSize:12,color:"var(--red)"} },
                                 "\u2620\uFE0F ", d.mortality, " mort."
                             ),
-                            isToday && React.createElement("span", { style:{fontSize:10,color:"var(--accent)",fontWeight:700} }, "hoje")
+                            isToday && React.createElement("span", { style:{fontSize:10,color:"var(--accent)",fontWeight:700} }, "hoje"),
+                            React.createElement("button", {
+                                onClick: function(e) {
+                                    e.stopPropagation();
+                                    if (confirm(`Apagar o registro de ${date}? Essa a\u00E7\u00E3o n\u00E3o desfaz o desconto j\u00E1 feito no estoque \u2014 se precisar, corrija o saldo em Estoque \u2192 Hist\u00F3rico.`)) {
+                                        deleteDayLog(tank.id, date);
+                                    }
+                                },
+                                style: { marginLeft: "auto", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 6, padding: "3px 8px", cursor: "pointer", color: "#f87171", fontSize: 11, fontFamily: "var(--font)", flexShrink: 0 }
+                            }, "\uD83D\uDDD1\uFE0F")
                         );
                     })
                 );
@@ -4336,3 +4359,4 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
