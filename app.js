@@ -1108,6 +1108,21 @@ function App() {
             });
         });
     }
+    function adjustStockForEdit(oldBags, oldProtein, newBags, newProtein, tankId, note) {
+        setStock(function(prev) {
+            var hist = Array.isArray(prev.history) ? [...prev.history] : [];
+            var bags = prev.bags || 0;
+            if (oldBags > 0) {
+                bags += oldBags;
+                hist.push({ date: today(), type: "in", bags: oldBags, tankId: tankId, note: "Estorno (edição) - " + note, proteinPct: oldProtein || "" });
+            }
+            if (newBags > 0) {
+                bags -= newBags;
+                hist.push({ date: today(), type: "out", bags: newBags, tankId: tankId, note: note, proteinPct: newProtein || "" });
+            }
+            return Object.assign({}, prev, { bags: Math.max(0, bags), history: hist });
+        });
+    }
     // Alerts computation
     const alerts = [];
     function getFCR(t) {
@@ -1151,7 +1166,7 @@ function App() {
         alerts.push({ level: "danger", tank: "Estoque", msg: `Ração baixa: ${stock.bags} sacos restantes` });
     const ctx = {
         tanks, logs, expenses, stock, cycles, units, setUnits,
-        addTank, updateTank, deleteTank, updateDayLog, deleteDayLog, addExpense,
+        addTank, updateTank, deleteTank, updateDayLog, deleteDayLog, addExpense, adjustStockForEdit,
         addStockIn, consumeStock, setCycles, setStock,
         activeTank, openTank, goHome, alerts, notify,
         capex, setCapex, opexG, setOpexG, schedule, setSchedule,
@@ -1942,14 +1957,16 @@ function getSlotLabel(timeStr) {
 
 function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
     var _a;
-    const { updateDayLog, deleteDayLog, logs, activeDate, setActiveDate, consumeStock, stock, waterTimes, goHome } = useApp();
+    const { updateDayLog, deleteDayLog, logs, activeDate, setActiveDate, consumeStock, adjustStockForEdit, stock, waterTimes, goHome } = useApp();
     // Use manual override if set, otherwise use phase recommendation
     var effectivePct = tank.overrideFeedPct ? parseInt(tank.overrideFeedPct) : (phase && phase.protPct);
     var isOverride = !!tank.overrideFeedPct;
     const [feedProtein, setFeedProtein] = (0, useState)(() => effectivePct ? effectivePct + "%" : "");
     (0, useEffect)(() => {
-        setFeedProtein(effectivePct ? effectivePct + "%" : "");
-    }, [tank.id, effectivePct]);
+        var _a;
+        const d = ((_a = logs[tank.id]) === null || _a === void 0 ? void 0 : _a[activeDate]) || {};
+        setFeedProtein(d.feedProteinUsed || (effectivePct ? effectivePct + "%" : ""));
+    }, [tank.id, activeDate, effectivePct]);
     const stockByProtein = getStockByProtein(stock);
     const dl = ((_a = logs[tank.id]) === null || _a === void 0 ? void 0 : _a[activeDate]) || {};
     // readings[0]=manhã, [1]=tarde, [2]=noite
@@ -2053,9 +2070,9 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
     }
     function handleSave() {
         var _a;
-        // Only deduct the DIFF from what was already saved today (prevents double-deduction)
+        // Reconcile against whatever was previously saved for this day (protein and/or quantity may have changed)
         const prevSacos = (dl.feedGivenKg || 0) / 25;
-        const diff = totalGivenSacos - prevSacos;
+        const prevProtein = dl.feedProteinUsed || "";
         const payload = {
             readings,
             meals,
@@ -2086,9 +2103,12 @@ function DailyTab({ tank, phase, dailyFeedKg, sp, session, role }) {
             }];
             updateTank(Object.assign({}, tank, { avgWeightG: newW, bioHistory: bioH }));
         }
-        // Only deduct new sacos from stock (diff prevents triple-deduction on re-save)
-        if (diff > 0)
-            consumeStock(diff, tank.id, `Arraçoamento ${tank.name} ${activeDate}`, feedProtein);
+        // Always reconcile stock: give back whatever protein/quantity was recorded before, then take the new one.
+        // This correctly handles editing quantity, protein type, or both — not just an increase in sacos.
+        const nothingChanged = Math.abs(prevSacos - totalGivenSacos) < 0.001 && prevProtein === feedProtein;
+        if (!nothingChanged && (prevSacos > 0 || totalGivenSacos > 0)) {
+            adjustStockForEdit(prevSacos, prevProtein, totalGivenSacos, feedProtein, tank.id, `Arraçoamento ${tank.name} ${activeDate}`);
+        }
         goHome();
     }
     // Status colors for each reading
@@ -4378,3 +4398,4 @@ function RelatoriosModal({ onClose }) {
 }
 
     ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+  
