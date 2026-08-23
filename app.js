@@ -1695,6 +1695,7 @@ function FeedTablePanel() {
 // ═══════════════════════════════════════════════════════════════════════════════
 function StockPanel() {
     const { stock, setStock, tanks } = useApp();
+    const [manualBags, setManualBags] = (0, useState)("");
     const avgCostByProtein = {};
     stock.history.filter(h => h.type === "in" && h.proteinPct).forEach(h => {
         if (!avgCostByProtein[h.proteinPct]) avgCostByProtein[h.proteinPct] = { totalCost: 0, totalBags: 0 };
@@ -1744,6 +1745,23 @@ function StockPanel() {
                             bags,
                             " sacos"))); });
                 })(),
+                React.createElement("div", { style: { marginTop: 14, display: "flex", gap: 8, alignItems: "center" } },
+                    React.createElement("input", { className: "inp", type: "number", placeholder: "Corrigir para quantos sacos?", value: manualBags, onChange: e => setManualBags(e.target.value), style: { flex: 1 } }),
+                    React.createElement("button", {
+                        onClick: function() {
+                            var n = parseFloat(manualBags);
+                            if (isNaN(n)) return alert("Digite um número válido de sacos.");
+                            if (confirm(`Corrigir saldo para ${n} sacos?\nO histórico é mantido, só o total exibido muda.`)) {
+                                setStock(function(prev) {
+                                    var u = Object.assign({}, prev, { bags: n });
+                                    DB.saveStock(u);
+                                    return u;
+                                });
+                                setManualBags("");
+                            }
+                        },
+                        style: { background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 8, padding: "10px 16px", cursor: "pointer", color: "var(--green)", fontSize: 13, fontFamily: "var(--font)", whiteSpace: "nowrap" }
+                    }, "\u2705 Corrigir saldo")),
                 React.createElement("button", {
                     onClick: function() {
                         if (confirm("Zerar saldo para 0 sacos?\nO histórico é mantido.")) {
@@ -1754,7 +1772,7 @@ function StockPanel() {
                             });
                         }
                     },
-                    style: { marginTop: 14, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "8px 16px", cursor: "pointer", color: "#f87171", fontSize: 13, fontFamily: "var(--font)", width: "100%", textAlign: "center" }
+                    style: { marginTop: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "8px 16px", cursor: "pointer", color: "#f87171", fontSize: 13, fontFamily: "var(--font)", width: "100%", textAlign: "center" }
                 }, "\uD83D\uDDD1\uFE0F Zerar saldo do estoque"))),
         React.createElement("div", { className: "card", style: { padding: 18 } },
             React.createElement("div", { className: "section-hdr" }, "\uD83D\uDCCB Hist\u00F3rico de Movimenta\u00E7\u00F5es"),
@@ -1794,11 +1812,12 @@ function StockPanel() {
                         React.createElement("td", null,
                             React.createElement("button", {
                                 onClick: function() {
-                                    if (confirm("Apagar este registro do histórico? O saldo de sacos será recalculado.")) {
+                                    if (confirm("Apagar este registro do histórico? O saldo de sacos será ajustado de volta.")) {
                                         setStock(function(prev) {
+                                            var deleted = prev.history[realIdx];
                                             var newHist = prev.history.filter(function(_, idx) { return idx !== realIdx; });
-                                            var newBags = newHist.reduce(function(s, hh) { return s + (hh.type === "in" ? (hh.bags || 0) : -(hh.bags || 0)); }, 0);
-                                            var updated = Object.assign({}, prev, { history: newHist, bags: newBags });
+                                            var delta = deleted ? (deleted.type === "in" ? -(deleted.bags || 0) : (deleted.bags || 0)) : 0;
+                                            var updated = Object.assign({}, prev, { history: newHist, bags: (prev.bags || 0) + delta });
                                             DB.saveStock(updated);
                                             return updated;
                                         });
