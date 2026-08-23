@@ -1039,6 +1039,8 @@ function App() {
     });
   }
     function updateDayLog(tankId, date, fields) {
+        var prevDay = ((logs[tankId]) || {})[date] || {};
+        var mergedDay = { ...prevDay, ...fields };
         setLogs(prev => {
             var _a;
             return ({
@@ -1046,12 +1048,15 @@ function App() {
                 [tankId]: { ...(prev[tankId] || {}), [date]: { ...(((_a = prev[tankId]) === null || _a === void 0 ? void 0 : _a[date]) || {}), ...fields } }
             });
         });
+        DB.saveLog(tankId, date, mergedDay);
     }
     function addExpense(tankId, exp) {
+        var updated = [...(expenses[tankId] || []), exp];
         setExpenses(prev => ({
             ...prev,
-            [tankId]: [...(prev[tankId] || []), exp]
+            [tankId]: updated
         }));
+        DB.saveExpenses(tankId, updated);
     }
     function addStockIn(nf) {
         const bags = parseInt(nf.bags) || 0;
@@ -1678,7 +1683,7 @@ function FeedTablePanel() {
 // STOCK PANEL
 // ═══════════════════════════════════════════════════════════════════════════════
 function StockPanel() {
-    const { stock, setStock } = useApp();
+    const { stock, setStock, tanks } = useApp();
     return (React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
         React.createElement("div", { className: "grid2" },
             React.createElement("div", { className: "card", style: { padding: 18 } },
@@ -1716,11 +1721,11 @@ function StockPanel() {
                     stock.history.filter(h => h.type === "out").forEach(h => {
                         byTank[h.tankId || "geral"] = (byTank[h.tankId || "geral"] || 0) + h.bags;
                     });
-                    return Object.entries(byTank).length === 0 ? (React.createElement("p", { style: { color: "var(--muted)", fontSize: 13 } }, "Nenhum consumo registrado.")) : Object.entries(byTank).map(([tid, bags]) => (React.createElement("div", { key: tid, style: { display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--border)", fontSize: 13 } },
-                        React.createElement("span", { style: { color: "var(--muted)" } }, tid === "geral" ? "Geral" : tid),
+                    return Object.entries(byTank).length === 0 ? (React.createElement("p", { style: { color: "var(--muted)", fontSize: 13 } }, "Nenhum consumo registrado.")) : Object.entries(byTank).map(([tid, bags]) => { const tk = tanks.find(t => t.id === tid); return (React.createElement("div", { key: tid, style: { display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--border)", fontSize: 13 } },
+                        React.createElement("span", { style: { color: "var(--muted)" } }, tid === "geral" ? "Geral" : (tk ? tk.name : `Tanque removido (${tid.slice(0, 6)})`)),
                         React.createElement("span", { style: { fontFamily: "var(--mono)", fontWeight: 600 } },
                             bags,
-                            " sacos"))));
+                            " sacos"))); });
                 })(),
                 React.createElement("button", {
                     onClick: function() {
@@ -3735,14 +3740,18 @@ function FinanceiroModal({ onClose }) {
         const cat = cleanCat(form.cat);
         if (!form.amount || !cat)
             return alert("Preencha categoria e valor.");
-        setCapex(p => [...p, { ...form, cat, id: genId(), amount: parseFloat(form.amount) }]);
+        const updated = [...capex, { ...form, cat, id: genId(), amount: parseFloat(form.amount) }];
+        setCapex(updated);
+        DB.saveCapex(updated);
         setForm(p => ({ ...p, desc: "", amount: "", tankId: "", cat: "" }));
     }
     function addOpex() {
         const cat = cleanCat(form.cat);
         if (!form.amount || !cat)
             return alert("Preencha categoria e valor.");
-        setOpexG(p => [...p, { ...form, cat, id: genId(), amount: parseFloat(form.amount) }]);
+        const updated = [...opexG, { ...form, cat, id: genId(), amount: parseFloat(form.amount) }];
+        setOpexG(updated);
+        DB.saveOpex(updated);
         setForm(p => ({ ...p, desc: "", amount: "", cat: "" }));
     }
     function addSched() {
@@ -3754,8 +3763,8 @@ function FinanceiroModal({ onClose }) {
     function togglePaid(id) {
         setSchedule(p => p.map(s => s.id === id ? { ...s, paid: !s.paid } : s));
     }
-    function delCapex(id) { setCapex(p => p.filter(e => e.id !== id)); }
-    function delOpex(id) { setOpexG(p => p.filter(e => e.id !== id)); }
+    function delCapex(id) { const updated = capex.filter(e => e.id !== id); setCapex(updated); DB.saveCapex(updated); }
+    function delOpex(id) { const updated = opexG.filter(e => e.id !== id); setOpexG(updated); DB.saveOpex(updated); }
     function delSched(id) { setSchedule(p => p.filter(e => e.id !== id)); }
     // Group by category
     function groupBy(arr, key) {
